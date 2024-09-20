@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class TicketRepo {
@@ -23,13 +22,13 @@ public class TicketRepo {
         return new ArrayList<>(tickets);
     }
 
-    public Optional<Ticket> findById(Integer id) {
+    public Ticket findById(Integer id) {
         for (Ticket ticket : tickets) {
             if (ticket.getId().equals(id)) {
-                return Optional.of(ticket);
+                return ticket;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     public List<Ticket> findByPriceLessThanMax(double maxPrice) {
@@ -42,12 +41,26 @@ public class TicketRepo {
         return result;
     }
 
-    public Ticket save(Ticket ticket) {
+    public void save(Ticket ticket) {
         if (ticket.getId() == null) {
             ticket.setId(nextId++);
+            tickets.add(ticket);
+        } else {
+            // Update existing ticket
+            Ticket existingTicket = findById(ticket.getId());
+            if (existingTicket != null) {
+                existingTicket.setEventName(ticket.getEventName());
+                existingTicket.setLocation(ticket.getLocation());
+                existingTicket.setPrice(ticket.getPrice());
+            }
         }
-        tickets.add(ticket);
-        return ticket;
+    }
+
+    public void deleteById(Integer id) {
+        Ticket ticketToDelete = findById(id);
+        if (ticketToDelete != null) {
+            tickets.remove(ticketToDelete);
+        }
     }
 }
 

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TicketService {
@@ -20,8 +19,7 @@ public class TicketService {
     }
 
     public Ticket getTicketById(Integer id) {
-        Optional<Ticket> ticket = ticketRepo.findById(id);
-        return ticket.orElse(null);
+        return ticketRepo.findById(id);
     }
 
     public List<Ticket> getTicketsByPrice(double maxPrice) {
@@ -31,5 +29,19 @@ public class TicketService {
     public void createTicket(Ticket ticket) {
         ticketRepo.save(ticket);
     }
-}
 
+    public void updateTicket(Integer id, Ticket updatedTicket) {
+        Ticket existingTicket = getTicketById(id);
+        if (existingTicket != null) {
+            updatedTicket.setId(id);
+            ticketRepo.save(updatedTicket);
+        }
+    }
+
+    public void deleteTicket(Integer id) {
+        Ticket ticket = getTicketById(id);
+        if (ticket != null) {
+            ticketRepo.deleteById(id);
+        }
+    }
+}
