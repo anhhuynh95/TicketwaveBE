@@ -1,0 +1,25 @@
+# Disable the Gradle daemon for Continuous Integration servers as correctness
+# is usually a priority over speed in CI environments. Using a fresh
+# runtime for each build is more reliable since the runtime is completely
+# isolated from any previous builds.
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - Get-ChildItem # List files to confirm gradlew.bat is present
+    - cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)" # Set permissions
+    - cmd.exe /c gradlew.bat assemble # Use Command Prompt to run the batch file
+
+test:
+  stage: test
+  script:
+    - Get-ChildItem
+    - cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)"
+    - cmd.exe /c gradlew.bat test
