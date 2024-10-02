@@ -13,13 +13,15 @@ stages:
 build:
   stage: build
   script:
-    - Get-ChildItem # List files to confirm gradlew.bat is present
-    - cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)" # Set permissions
-    - cmd.exe /c gradlew.bat assemble # Use Command Prompt to run the batch file
+    - - ./gradlew assemble
+    #- Get-ChildItem # List files to confirm gradlew.bat is present
+    #- cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)" # Set permissions
+    #- cmd.exe /c gradlew.bat assemble # Use Command Prompt to run the batch file
 
 test:
   stage: test
   script:
-    - Get-ChildItem
-    - cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)"
-    - cmd.exe /c gradlew.bat test
+    - ./gradlew test
+   # - Get-ChildItem
+   # - cmd.exe /c "icacls gradlew.bat /grant Everyone:(RX)"
+   # - cmd.exe /c gradlew.bat test
