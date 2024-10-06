@@ -1,17 +1,16 @@
 package nl.fontys.s3.ticketwave_s3.models;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class Ticket {
+public class Event {
     private Integer id;
-    private String eventName;
+    private String name;
     private String location;
-    private Double price;
-    private Integer eventId;
+    private String description;
+    private String dateTime;
 }

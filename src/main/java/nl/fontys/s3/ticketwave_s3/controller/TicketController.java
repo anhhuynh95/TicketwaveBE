@@ -2,8 +2,9 @@ package nl.fontys.s3.ticketwave_s3.controller;
 
 import nl.fontys.s3.ticketwave_s3.controller.dtos.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.controller.dtos.TicketsDTO;
+import nl.fontys.s3.ticketwave_s3.interfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.models.Ticket;
-import nl.fontys.s3.ticketwave_s3.business.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ public class TicketController {
 
     @Autowired
     private TicketService ticketService;
+
+    @Autowired
+    private TicketMapper ticketMapper;
 
     @GetMapping()
     public TicketsDTO getAllTickets(@RequestParam(required = false) Double maxPrice) {
@@ -34,11 +38,7 @@ public class TicketController {
 
         TicketsDTO result = new TicketsDTO();
         for (Ticket ticket : tickets) {
-            TicketDTO ticketDTO = new TicketDTO();
-            ticketDTO.setId(ticket.getId());
-            ticketDTO.setEventName(ticket.getEventName());
-            ticketDTO.setLocation(ticket.getLocation());
-            ticketDTO.setPrice(ticket.getPrice());
+            TicketDTO ticketDTO = ticketMapper.toDTO(ticket); // Use the mapper
             result.getTickets().add(ticketDTO);
         }
 
@@ -56,18 +56,13 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
 
-        TicketDTO ticketDTO = new TicketDTO();
-        ticketDTO.setId(ticket.getId());
-        ticketDTO.setEventName(ticket.getEventName());
-        ticketDTO.setLocation(ticket.getLocation());
-        ticketDTO.setPrice(ticket.getPrice());
-        return ticketDTO;
+        return ticketMapper.toDTO(ticket); // Use the mapper
     }
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public void createTicket(@RequestBody TicketDTO input) {
-        Ticket ticket = new Ticket(null, input.getEventName(), input.getLocation(), input.getPrice());
+        Ticket ticket = ticketMapper.toEntity(input); // Use the mapper
         ticketService.createTicket(ticket);
     }
 
@@ -83,7 +78,8 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
 
-        Ticket updatedTicket = new Ticket(null, input.getEventName(), input.getLocation(), input.getPrice());
+        Ticket updatedTicket = ticketMapper.toEntity(input); // Use the mapper
+        updatedTicket.setId(id); // Set the ID to the existing ticket
         ticketService.updateTicket(id, updatedTicket);
     }
 
