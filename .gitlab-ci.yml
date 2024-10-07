@@ -23,5 +23,5 @@ deploy_docker:
     - docker:dind
   script:
     - docker buildx create --use  # Ensure buildx is set up
-    - docker buildx build --tag $CI_REGISTRY_IMAGE:latest --load .
+    - docker buildx build --tag $CI_REGISTRY_IMAGE:latest --push .
     - docker push $CI_REGISTRY_IMAGE:latest
