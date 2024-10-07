@@ -17,15 +17,10 @@ test:
     - ./gradlew test
 
 deploy_docker:
-  stage: deploy  # Part of the CD pipeline
+  stage: deploy
   image: docker:latest
   services:
     - docker:dind
-  before_script:
-    # Authenticate Docker with GitLab Container Registry
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   script:
-    # Build the Docker image
-    - docker build -t $CI_REGISTRY_IMAGE:latest .
-    # Push the Docker image to the GitLab Container Registry
-    - docker push $CI_REGISTRY_IMAGE:latest
+    # Build the Docker image without pushing it to any registry
+    - docker build -t ticketwave:latest .
