@@ -9,6 +9,7 @@ variables:
 stages:
   - build
   - test
+  - docker_build
 
 build:
   stage: build
