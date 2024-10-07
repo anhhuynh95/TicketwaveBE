@@ -1,15 +1,10 @@
-# Disable the Gradle daemon for Continuous Integration servers as correctness
-# is usually a priority over speed in CI environments. Using a fresh
-# runtime for each build is more reliable since the runtime is completely
-# isolated from any previous builds.
-
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 stages:
   - build
   - test
-  - docker_build
+  - deploy  # Deployment (CD) stage
 
 build:
   stage: build
@@ -21,11 +16,12 @@ test:
   script:
     - ./gradlew test
 
-docker_build:
-  stage: docker_build
+deploy_docker:
+  stage: deploy  # This is now part of the CD pipeline
   image: docker:latest
   services:
-   - docker:dind
+    - docker:dind
   script:
-    - docker buildx build --tag $CI_REGISTRY_IMAGE:latest --load .
+    - echo "CI_REGISTRY_IMAGE is: $CI_REGISTRY_IMAGE"
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:latest
