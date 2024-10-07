@@ -10,11 +10,16 @@ build:
   stage: build
   script:
     - ./gradlew assemble
+  artifacts:
+        paths:
+          - build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  # Save the JAR as an artifact
 
 test:
   stage: test
   script:
     - ./gradlew test
+  dependencies:
+    - build  # Make sure the test stage has access to build artifacts
 
 deploy_docker:
   stage: deploy
@@ -24,3 +29,5 @@ deploy_docker:
   script:
     # Build the Docker image without pushing it to any registry
     - docker build -t ticketwave:latest .
+  dependencies:
+    - build  # Make sure deploy_docker depends on the build stage
