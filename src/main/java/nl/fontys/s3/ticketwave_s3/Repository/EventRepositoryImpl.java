@@ -1,7 +1,7 @@
-package nl.fontys.s3.ticketwave_s3.repository;
+package nl.fontys.s3.ticketwave_s3.Repository;
 
-import nl.fontys.s3.ticketwave_s3.interfaceRepo.EventRepository;
-import nl.fontys.s3.ticketwave_s3.models.Event;
+import nl.fontys.s3.ticketwave_s3.InterfaceRepo.EventRepository;
+import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

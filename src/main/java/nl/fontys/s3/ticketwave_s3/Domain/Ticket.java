@@ -1,4 +1,4 @@
-package nl.fontys.s3.ticketwave_s3.models;
+package nl.fontys.s3.ticketwave_s3.Domain;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

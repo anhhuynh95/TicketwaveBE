@@ -1,6 +1,6 @@
-package nl.fontys.s3.ticketwave_s3.interfaceService;
+package nl.fontys.s3.ticketwave_s3.InterfaceService;
 
-import nl.fontys.s3.ticketwave_s3.models.Ticket;
+import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 
 import java.util.List;
 

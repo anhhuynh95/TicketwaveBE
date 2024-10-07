@@ -1,6 +1,6 @@
-package nl.fontys.s3.ticketwave_s3.interfaceRepo;
+package nl.fontys.s3.ticketwave_s3.InterfaceRepo;
 
-import nl.fontys.s3.ticketwave_s3.models.Event;
+import nl.fontys.s3.ticketwave_s3.Domain.Event;
 
 import java.util.List;
 

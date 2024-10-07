@@ -1,9 +1,9 @@
 package nl.fontys.s3.ticketwave_s3;
 
-import nl.fontys.s3.ticketwave_s3.interfaceService.EventService;
-import nl.fontys.s3.ticketwave_s3.interfaceService.TicketService;
-import nl.fontys.s3.ticketwave_s3.models.Event;
-import nl.fontys.s3.ticketwave_s3.models.Ticket;
+import nl.fontys.s3.ticketwave_s3.InterfaceService.EventService;
+import nl.fontys.s3.ticketwave_s3.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

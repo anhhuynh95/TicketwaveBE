@@ -1,10 +1,10 @@
-package nl.fontys.s3.ticketwave_s3.controller;
+package nl.fontys.s3.ticketwave_s3.Controller;
 
-import nl.fontys.s3.ticketwave_s3.controller.dtos.TicketDTO;
-import nl.fontys.s3.ticketwave_s3.controller.dtos.TicketsDTO;
-import nl.fontys.s3.ticketwave_s3.interfaceService.TicketService;
-import nl.fontys.s3.ticketwave_s3.mapper.TicketMapper;
-import nl.fontys.s3.ticketwave_s3.models.Ticket;
+import nl.fontys.s3.ticketwave_s3.Controller.dtos.TicketDTO;
+import nl.fontys.s3.ticketwave_s3.Controller.dtos.TicketsDTO;
+import nl.fontys.s3.ticketwave_s3.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
+import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

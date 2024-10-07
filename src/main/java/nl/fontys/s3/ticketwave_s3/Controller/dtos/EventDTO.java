@@ -1,4 +1,4 @@
-package nl.fontys.s3.ticketwave_s3.controller.dtos;
+package nl.fontys.s3.ticketwave_s3.Controller.dtos;
 
 import lombok.Data;
 
