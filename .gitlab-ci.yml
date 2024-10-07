@@ -27,5 +27,5 @@ docker_build:
   services:
    - docker:dind
   script:
-    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker buildx build --tag $CI_REGISTRY_IMAGE:latest --load .
     - docker push $CI_REGISTRY_IMAGE:latest
