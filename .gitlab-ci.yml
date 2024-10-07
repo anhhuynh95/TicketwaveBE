@@ -1,33 +1,34 @@
+# Set environment variables for the CI pipeline
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false" # Disables the Gradle daemon to ensure a clean environment for each build
 
+# Define the pipeline stages that will run in sequence
 stages:
-  - build
-  - test
-  - deploy  # Deployment (CD) stage
+  - build #Compile and package the application
+  - test #Run the unit tests
+  - deploy  #Build and deploy the Docker image
 
 build:
   stage: build
   script:
-    - ./gradlew assemble
+    - ./gradlew assemble #Compile the project and package it as a JAR file
   artifacts:
         paths:
-          - build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  # Save the JAR as an artifact
+          - build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  #Save the generated JAR file as an artifact for use in later stages
 
 test:
   stage: test
   script:
-    - ./gradlew test
+    - ./gradlew test #Run the unit tests using Gradle
   dependencies:
-    - build  # Make sure the test stage has access to build artifacts
+    - build  #Ensure that this stage has access to the artifacts (the JAR file) from the build stage
 
 deploy_docker:
   stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
+  #image: docker:latest  #Use the official Docker image to allow Docker commands in this job
+  #services:
+    #- docker:dind #Use Docker-in-Docker (DinD) service to build Docker images inside the CI pipeline
   script:
-    # Build the Docker image without pushing it to any registry
-    - docker build -t ticketwave:latest .
+    - docker build -t ticketwave:latest .  # uild the Docker image using the Dockerfile in the repository and tag it as 'latest'
   dependencies:
-    - build  # Make sure deploy_docker depends on the build stage
+    - build
