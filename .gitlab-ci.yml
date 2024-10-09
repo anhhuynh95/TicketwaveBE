@@ -11,7 +11,7 @@ stages:
 build:
   stage: build
   script:
-    - ./gradlew assemble #Compile the project and package it as a JAR file
+    - ./gradlew clean assemble #Compile the project and package it as a JAR file
   artifacts:
         paths:
           - build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  #Save the generated JAR file as an artifact for use in later stages
@@ -19,7 +19,7 @@ build:
 test:
   stage: test
   script:
-    - ./gradlew test #Run the unit tests using Gradle
+    - ./gradlew test --info #Run the unit tests using Gradle
   dependencies:
     - build  #Ensure that this stage has access to the artifacts (the JAR file) from the build stage
 
