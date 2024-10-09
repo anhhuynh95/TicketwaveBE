@@ -1,8 +1,8 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
-import nl.fontys.s3.ticketwave_s3.InterfaceRepo.EventRepository;
-import nl.fontys.s3.ticketwave_s3.InterfaceRepo.TicketRepository;
-import nl.fontys.s3.ticketwave_s3.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
+import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
+import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

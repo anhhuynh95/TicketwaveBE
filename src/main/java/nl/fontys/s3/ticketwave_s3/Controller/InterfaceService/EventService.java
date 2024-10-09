@@ -1,4 +1,4 @@
-package nl.fontys.s3.ticketwave_s3.InterfaceService;
+package nl.fontys.s3.ticketwave_s3.Controller.InterfaceService;
 
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 

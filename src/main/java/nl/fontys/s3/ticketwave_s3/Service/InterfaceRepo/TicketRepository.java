@@ -1,4 +1,4 @@
-package nl.fontys.s3.ticketwave_s3.InterfaceRepo;
+package nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo;
 
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 

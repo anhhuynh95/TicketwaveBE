@@ -1,7 +1,7 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
-import nl.fontys.s3.ticketwave_s3.Controller.dtos.EventDTO;
-import nl.fontys.s3.ticketwave_s3.InterfaceService.EventService;
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
+import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/events")
 public class EventController {

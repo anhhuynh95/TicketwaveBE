@@ -1,6 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Mapper;
 
-import nl.fontys.s3.ticketwave_s3.Controller.dtos.EventDTO;
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.stereotype.Component;
 
