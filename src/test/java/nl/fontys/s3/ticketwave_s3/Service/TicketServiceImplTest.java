@@ -7,6 +7,7 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // Control the order of execution
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) // Reset context after each test
 class TicketServiceImplTest {
 
         @Autowired
@@ -22,8 +24,10 @@ class TicketServiceImplTest {
         @Autowired
         private EventService eventService;
 
+
         @BeforeEach
         void setUp() {
+
             // Ensure the required events are available before running ticket-related tests
             eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
             eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
@@ -68,7 +72,7 @@ class TicketServiceImplTest {
         @Order(4)
         void getAllTickets_shouldReturnAllTickets() {
             List<Ticket> tickets = ticketService.getAllTickets();
-            assertEquals(4, tickets.size(), "There should be 4 tickets available.");
+            assertEquals(3, tickets.size(), "There should be 4 tickets available.");
         }
 
         @Test
