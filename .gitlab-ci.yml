@@ -29,6 +29,6 @@ deploy_docker:
   #services:
     #- docker:dind #Use Docker-in-Docker (DinD) service to build Docker images inside the CI pipeline
   script:
-    - docker build -t ticketwave:latest .  # uild the Docker image using the Dockerfile in the repository and tag it as 'latest'
+    - docker build -t spring-boot-app:latest .  # Build the Docker image using the Dockerfile in the repository and tag it as 'latest'
   dependencies:
     - build
