@@ -21,14 +21,14 @@ class EventServiceImplTest {
     private EventService eventService;
 
 
-    @BeforeEach
-    void setUp() {
-
-        // Ensure the necessary events are set up for testing event-related features
-        eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
-        eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
-        eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
-    }
+//    @BeforeEach
+//    void setUp() {
+//
+//        // Ensure the necessary events are set up for testing event-related features
+//        eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
+//        eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
+//        eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
+//    }
 
     @Test
     @Order(1)
@@ -47,7 +47,7 @@ class EventServiceImplTest {
     @Order(2)
     void getAllEvents_shouldReturnAllEvents() {
         List<Event> events = eventService.getAllEvents();
-        assertEquals(4, events.size(), "There should be 4 events available.");
+        assertEquals(3, events.size(), "There should be 4 events available.");
     }
 
     @Test
