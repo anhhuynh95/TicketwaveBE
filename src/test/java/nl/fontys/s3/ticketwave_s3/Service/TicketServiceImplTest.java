@@ -1,6 +1,8 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
+import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,17 @@ class TicketServiceImplTest {
 
         @Autowired
         private TicketService ticketService;
+        @Autowired
+        private EventService eventService;
+
+        @BeforeEach
+        void setUp() {
+            // Ensure the required events are available before running ticket-related tests
+            eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
+            eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
+            eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
+        }
+
         @Test
         @Order(1)
         void createTicket_shouldAddNewTicket() {
