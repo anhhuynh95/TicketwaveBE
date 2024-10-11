@@ -4,8 +4,8 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
-import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
+import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -25,17 +25,16 @@ public class TicketController {
 
     @Autowired
     private TicketMapper ticketMapper;
+
     @Autowired
     private EventService eventService;
 
+    /**Retrieve all tickets, optionally filtered by max price.*/
     @GetMapping()
     public List<TicketDTO> getAllTickets(@RequestParam(required = false) Double maxPrice) {
-        List<Ticket> tickets;
-        if (maxPrice != null) {
-            tickets = ticketService.getTicketsByPrice(maxPrice);
-        } else {
-            tickets = ticketService.getAllTickets();
-        }
+        List<Ticket> tickets = (maxPrice != null)
+                ? ticketService.getTicketsByPrice(maxPrice)
+                : ticketService.getAllTickets();
 
         if (tickets.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tickets available.");
@@ -46,6 +45,7 @@ public class TicketController {
                 .collect(Collectors.toList());
     }
 
+    /**Retrieve a specific ticket by ID.*/
     @GetMapping("/{id}")
     public TicketDTO getTicket(@PathVariable Integer id) {
         if (id <= 0) {
@@ -60,6 +60,7 @@ public class TicketController {
         return ticketMapper.toDTO(ticket);
     }
 
+    /**Create a new ticket associated with an event.*/
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public void createTicket(@RequestParam Integer eventId, @RequestBody TicketDTO input) {
@@ -69,16 +70,17 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
         }
 
-        // Create the ticket and set the event's ticket details
+        // Create the ticket and set its event details
         Ticket ticket = ticketMapper.toEntity(input);
         ticket.setEventId(eventId);
-        ticket.setQuantity(event.getTicketQuantity()); // Use the event's ticket quantity
-        ticket.setEventName(event.getName()); // Set event name
-        ticket.setLocation(event.getLocation()); // Set event location
+        ticket.setQuantity(event.getTicketQuantity());
+        ticket.setEventName(event.getName());
+        ticket.setLocation(event.getLocation());
 
         ticketService.createTicket(ticket);
     }
 
+    /**Update an existing ticket.*/
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTicket(@PathVariable Integer id, @RequestBody TicketDTO input) {
@@ -96,6 +98,7 @@ public class TicketController {
         ticketService.updateTicket(id, updatedTicket);
     }
 
+    /**Delete a specific ticket by ID.*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTicket(@PathVariable Integer id) {
@@ -111,6 +114,7 @@ public class TicketController {
         ticketService.deleteTicket(id);
     }
 
+    /**Purchase a ticket by updating the quantity.*/
     @PutMapping("/{id}/purchase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void purchaseTicket(@PathVariable Integer id, @RequestParam Integer quantity) {
@@ -126,16 +130,16 @@ public class TicketController {
         ticketService.purchaseTicket(id, quantity);
     }
 
+    /**Retrieve all purchased tickets.*/
     @GetMapping("/purchased")
     public List<TicketDTO> getPurchasedTickets() {
         List<Ticket> purchasedTickets = ticketService.getPurchasedTickets();
-
-        // Ensure that when tickets are returned, their quantity is correctly included
         return purchasedTickets.stream()
-                .map(ticketMapper::toDTO)  // Make sure `toDTO` includes `quantity`
+                .map(ticketMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
+    /**Cancel a specific quantity of tickets.*/
     @PutMapping("/{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelTicket(@PathVariable Integer id, @RequestBody Map<String, Integer> body) {
@@ -152,13 +156,11 @@ public class TicketController {
 
         // Reduce the purchased quantity
         ticket.setQuantity(ticket.getQuantity() - cancelQuantity);
-
-        // Update the ticket in the repository
         ticketService.updateTicket(id, ticket);
 
-        // Optionally, increase the available event tickets again
+        // Update the event's available tickets
         Event event = eventService.getEventById(ticket.getEventId());
         event.setTicketQuantity(event.getTicketQuantity() + cancelQuantity);
-        eventService.updateEvent(event.getId(),event);
+        eventService.updateEvent(event.getId(), event);
     }
 }

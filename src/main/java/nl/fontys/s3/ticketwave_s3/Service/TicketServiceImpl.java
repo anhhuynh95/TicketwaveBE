@@ -22,26 +22,28 @@ public class TicketServiceImpl implements TicketService {
     private TicketRepository ticketRepository;
 
     @Autowired
-    private EventRepository eventRepository; // Add this to validate events
+    private EventRepository eventRepository;  // To validate associated events
 
-    private final List<Ticket> purchasedTickets = new ArrayList<>();
-    private final Map<Integer, Integer> purchasedTicketQuantities = new HashMap<>();
+    private final List<Ticket> purchasedTickets = new ArrayList<>();  // Stores purchased tickets
+    private final Map<Integer, Integer> purchasedTicketQuantities = new HashMap<>();  // Tracks quantities of purchased tickets
 
+    /** Fetch all tickets. */
     @Override
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
+    /** Fetch a specific ticket by its ID. */
     @Override
     public Ticket getTicketById(Integer id) {
         return ticketRepository.findById(id);
     }
 
+    /** Fetch tickets filtered by a maximum price. */
     @Override
     public List<Ticket> getTicketsByPrice(Double maxPrice) {
-        List<Ticket> allTickets = ticketRepository.findAll();
         List<Ticket> filteredTickets = new ArrayList<>();
-        for (Ticket ticket : allTickets) {
+        for (Ticket ticket : ticketRepository.findAll()) {
             if (ticket.getPrice() <= maxPrice) {
                 filteredTickets.add(ticket);
             }
@@ -49,36 +51,44 @@ public class TicketServiceImpl implements TicketService {
         return filteredTickets;
     }
 
+    /** Create a new ticket and validate its data. */
     @Override
     public void createTicket(Ticket ticket) {
         if (ticket.getPrice() < 0) {
             throw new IllegalArgumentException("Ticket price cannot be negative.");
         }
+
         if (eventRepository.findById(ticket.getEventId()) == null) {
             throw new IllegalArgumentException("Event with ID " + ticket.getEventId() + " does not exist.");
         }
+
         ticketRepository.save(ticket);
     }
 
+    /** Update an existing ticket by its ID. */
     @Override
     public void updateTicket(Integer id, Ticket ticket) {
         Ticket existingTicket = ticketRepository.findById(id);
         if (existingTicket == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
-        ticket.setId(id);
+
+        ticket.setId(id);  // Ensure the ticket ID is set before saving
         ticketRepository.save(ticket);
     }
 
+    /** Delete a ticket by its ID. */
     @Override
     public void deleteTicket(Integer id) {
         Ticket ticket = ticketRepository.findById(id);
         if (ticket == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
+
         ticketRepository.deleteById(id);
     }
 
+    /** Process ticket purchases and update event ticket availability. */
     @Override
     public void purchaseTicket(Integer id, Integer quantity) {
         Ticket ticket = ticketRepository.findById(id);
@@ -86,38 +96,32 @@ public class TicketServiceImpl implements TicketService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
 
-        // Retrieve event to check available tickets
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
         }
 
-        // Check if enough tickets are available
         if (event.getTicketQuantity() < quantity) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough tickets available.");
         }
 
-        // Deduct the purchased quantity from the event's available tickets
-        event.setTicketQuantity(event.getTicketQuantity() - quantity);
+        event.setTicketQuantity(event.getTicketQuantity() - quantity);  // Deduct purchased quantity
         eventRepository.save(event);
 
-        // Check if the user already purchased this ticket (or event)
-        // If yes, update the quantity, otherwise, create a new ticket entry
-        if (purchasedTicketQuantities.containsKey(id)) {
-            // Add the new quantity to the existing quantity
-            purchasedTicketQuantities.put(id, purchasedTicketQuantities.get(id) + quantity);
-        } else {
-            purchasedTicketQuantities.put(id, quantity);  // Create a new entry for the purchased ticket
-            purchasedTickets.add(ticket);  // Add the ticket to the purchased list
+        // Update or create purchased ticket record
+        purchasedTicketQuantities.merge(id, quantity, Integer::sum);
+        if (!purchasedTickets.contains(ticket)) {
+            purchasedTickets.add(ticket);
         }
 
-        // Update the ticket's quantity in the repository
-        ticket.setQuantity(purchasedTicketQuantities.get(id));  // Update ticket's quantity with the accumulated total
-        ticketRepository.save(ticket);  // Save the ticket with updated quantity
+        // Update the ticket's quantity and save it
+        ticket.setQuantity(purchasedTicketQuantities.get(id));
+        ticketRepository.save(ticket);
     }
 
+    /** Fetch the list of purchased tickets. */
     @Override
     public List<Ticket> getPurchasedTickets() {
-        return new ArrayList<>(purchasedTickets);
+        return new ArrayList<>(purchasedTickets);  // Return a copy of the purchased tickets list
     }
 }
