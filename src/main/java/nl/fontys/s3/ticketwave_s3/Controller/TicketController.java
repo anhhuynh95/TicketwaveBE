@@ -60,10 +60,22 @@ public class TicketController {
         return ticketMapper.toDTO(ticket);
     }
 
-    @PostMapping()
+    @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public void createTicket(@RequestBody TicketDTO input) {
+    public void createTicket(@RequestParam Integer eventId, @RequestBody TicketDTO input) {
+        // Ensure the event exists
+        Event event = eventService.getEventById(eventId);
+        if (event == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+        }
+
+        // Create the ticket and set the event's ticket details
         Ticket ticket = ticketMapper.toEntity(input);
+        ticket.setEventId(eventId);
+        ticket.setQuantity(event.getTicketQuantity()); // Use the event's ticket quantity
+        ticket.setEventName(event.getName()); // Set event name
+        ticket.setLocation(event.getLocation()); // Set event location
+
         ticketService.createTicket(ticket);
     }
 
