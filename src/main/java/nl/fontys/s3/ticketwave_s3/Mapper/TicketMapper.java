@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TicketMapper {
+
     public TicketDTO toDTO(Ticket ticket) {
         if (ticket == null) {
             return null;
@@ -15,6 +16,7 @@ public class TicketMapper {
         ticketDTO.setEventName(ticket.getEventName());
         ticketDTO.setLocation(ticket.getLocation());
         ticketDTO.setPrice(ticket.getPrice());
+        ticketDTO.setQuantity(ticket.getQuantity());  // Ensure quantity is mapped to the DTO
         return ticketDTO;
     }
 
@@ -27,6 +29,7 @@ public class TicketMapper {
         ticket.setEventName(ticketDTO.getEventName());
         ticket.setLocation(ticketDTO.getLocation());
         ticket.setPrice(ticketDTO.getPrice());
+        ticket.setQuantity(ticketDTO.getQuantity());  // Ensure quantity is mapped back to the entity
         return ticket;
     }
 }

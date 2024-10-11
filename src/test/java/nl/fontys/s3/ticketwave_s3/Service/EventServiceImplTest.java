@@ -20,20 +20,10 @@ class EventServiceImplTest {
     @Autowired
     private EventService eventService;
 
-
-//    @BeforeEach
-//    void setUp() {
-//
-//        // Ensure the necessary events are set up for testing event-related features
-//        eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
-//        eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
-//        eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
-//    }
-
     @Test
     @Order(1)
     void createEvent_shouldAddNewEvent() {
-        Event newEvent = new Event(null, "Dance Concert", "Rotterdam", "An exciting dance concert.", "2024-09-01T20:00");
+        Event newEvent = new Event(null, "Dance Concert", "Rotterdam", "An exciting dance concert.", "2024-09-01T20:00",75);
         eventService.createEvent(newEvent);
 
         List<Event> events = eventService.getAllEvents();
@@ -68,7 +58,7 @@ class EventServiceImplTest {
     @Test
     @Order(5)
     void updateEvent_shouldModifyExistingEvent() {
-        Event updatedEvent = new Event(null, "Updated Event", "Updated Location", "Updated Description", "2024-09-15T20:00");
+        Event updatedEvent = new Event(null, "Updated Event", "Updated Location", "Updated Description", "2024-09-15T20:00", 50);
         eventService.updateEvent(1, updatedEvent);
 
         Event event = eventService.getEventById(1);

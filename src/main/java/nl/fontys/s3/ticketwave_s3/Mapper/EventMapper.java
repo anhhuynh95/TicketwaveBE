@@ -17,6 +17,7 @@ public class EventMapper {
         dto.setLocation(event.getLocation());
         dto.setDescription(event.getDescription());
         dto.setDateTime(event.getDateTime());
+        dto.setTicketQuantity(event.getTicketQuantity());
         return dto;
     }
 
@@ -30,6 +31,7 @@ public class EventMapper {
         event.setLocation(dto.getLocation());
         event.setDescription(dto.getDescription());
         event.setDateTime(dto.getDateTime());
+        event.setTicketQuantity(dto.getTicketQuantity());
         return event;
     }
 }

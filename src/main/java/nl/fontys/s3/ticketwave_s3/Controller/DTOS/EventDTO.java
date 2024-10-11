@@ -9,4 +9,5 @@ public class EventDTO {
     private String location;
     private String description;
     private String dateTime;
+    private Integer ticketQuantity;
 }

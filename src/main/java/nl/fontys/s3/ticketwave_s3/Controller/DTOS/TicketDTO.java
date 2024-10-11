@@ -8,4 +8,5 @@ public class TicketDTO {
     private String eventName;
     private String location;
     private Double price;
+    private Integer quantity;
 }

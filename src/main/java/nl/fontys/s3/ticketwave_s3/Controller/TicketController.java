@@ -1,7 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
-import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketsDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
@@ -10,9 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-
 import java.util.List;
+import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/tickets")
 public class TicketController {
@@ -24,7 +24,7 @@ public class TicketController {
     private TicketMapper ticketMapper;
 
     @GetMapping()
-    public TicketsDTO getAllTickets(@RequestParam(required = false) Double maxPrice) {
+    public List<TicketDTO> getAllTickets(@RequestParam(required = false) Double maxPrice) {
         List<Ticket> tickets;
         if (maxPrice != null) {
             tickets = ticketService.getTicketsByPrice(maxPrice);
@@ -36,13 +36,9 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tickets available.");
         }
 
-        TicketsDTO result = new TicketsDTO();
-        for (Ticket ticket : tickets) {
-            TicketDTO ticketDTO = ticketMapper.toDTO(ticket); // Use the mapper
-            result.getTickets().add(ticketDTO);
-        }
-
-        return result;
+        return tickets.stream()
+                .map(ticketMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -56,13 +52,13 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
 
-        return ticketMapper.toDTO(ticket); // Use the mapper
+        return ticketMapper.toDTO(ticket);
     }
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public void createTicket(@RequestBody TicketDTO input) {
-        Ticket ticket = ticketMapper.toEntity(input); // Use the mapper
+        Ticket ticket = ticketMapper.toEntity(input);
         ticketService.createTicket(ticket);
     }
 
@@ -78,8 +74,8 @@ public class TicketController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
         }
 
-        Ticket updatedTicket = ticketMapper.toEntity(input); // Use the mapper
-        updatedTicket.setId(id); // Set the ID to the existing ticket
+        Ticket updatedTicket = ticketMapper.toEntity(input);
+        updatedTicket.setId(id);
         ticketService.updateTicket(id, updatedTicket);
     }
 
@@ -97,5 +93,29 @@ public class TicketController {
 
         ticketService.deleteTicket(id);
     }
-}
 
+    @PutMapping("/{id}/purchase")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void purchaseTicket(@PathVariable Integer id, @RequestParam Integer quantity) {
+        if (id <= 0 || quantity <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID and quantity must be positive integers.");
+        }
+
+        Ticket ticket = ticketService.getTicketById(id);
+        if (ticket == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+        }
+
+        ticketService.purchaseTicket(id, quantity);
+    }
+
+    @GetMapping("/purchased")
+    public List<TicketDTO> getPurchasedTickets() {
+        List<Ticket> purchasedTickets = ticketService.getPurchasedTickets();
+
+        // Ensure that when tickets are returned, their quantity is correctly included
+        return purchasedTickets.stream()
+                .map(ticketMapper::toDTO)  // Make sure `toDTO` includes `quantity`
+                .collect(Collectors.toList());
+    }
+}

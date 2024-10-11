@@ -13,9 +13,9 @@ public class EventRepositoryImpl implements EventRepository {
     private int nextId = 1;
 
     public EventRepositoryImpl() {
-        events.add(new Event(nextId++, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
-        events.add(new Event(nextId++, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
-        events.add(new Event(nextId++, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
+        events.add(new Event(nextId++, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00", 100));
+        events.add(new Event(nextId++, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00", 50));
+        events.add(new Event(nextId++, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00", 200));
     }
 
     @Override
@@ -45,6 +45,7 @@ public class EventRepositoryImpl implements EventRepository {
                 existingEvent.setLocation(event.getLocation());
                 existingEvent.setDescription(event.getDescription());
                 existingEvent.setDateTime(event.getDateTime());
+                existingEvent.setTicketQuantity(event.getTicketQuantity());
             }
         }
     }

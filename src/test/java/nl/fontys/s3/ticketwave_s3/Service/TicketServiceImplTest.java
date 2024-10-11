@@ -29,15 +29,15 @@ class TicketServiceImplTest {
         void setUp() {
 
             // Ensure the required events are available before running ticket-related tests
-            eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00"));
-            eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00"));
-            eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00"));
+            eventService.createEvent(new Event(null, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00",2));
+            eventService.createEvent(new Event(null, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00",2));
+            eventService.createEvent(new Event(null, "Sports Event", "Amsterdam", "An amazing football match", "2024-09-10T21:00",2));
         }
 
         @Test
         @Order(1)
         void createTicket_shouldAddNewTicket() {
-            Ticket newTicket = new Ticket(null, "Dance Concert", "Rotterdam", 60.0, 1);
+            Ticket newTicket = new Ticket(null, "Dance Concert", "Rotterdam", 60.0, 1,1);
             ticketService.createTicket(newTicket);
 
             List<Ticket> tickets = ticketService.getAllTickets();
@@ -51,7 +51,7 @@ class TicketServiceImplTest {
         @Test
         @Order(2)
         void createTicket_shouldThrowException_whenPriceIsNegative() {
-            Ticket newTicket = new Ticket(null, "Invalid Ticket", "Location", -10.0, 1); // Negative price
+            Ticket newTicket = new Ticket(null, "Invalid Ticket", "Location", -10.0, 1,1); // Negative price
 
             Exception exception = assertThrows(IllegalArgumentException.class, () -> ticketService.createTicket(newTicket));
 
@@ -61,7 +61,7 @@ class TicketServiceImplTest {
         @Test
         @Order(3)
         void createTicket_shouldThrowException_whenEventIdDoesNotExist() {
-            Ticket newTicket = new Ticket(null, "Invalid Ticket", "Location", 20.0, 999); // Non-existent event ID
+            Ticket newTicket = new Ticket(null, "Invalid Ticket", "Location", 20.0, 999,1); // Non-existent event ID
 
             Exception exception = assertThrows(IllegalArgumentException.class, () -> ticketService.createTicket(newTicket));
 
@@ -105,7 +105,7 @@ class TicketServiceImplTest {
         @Test
         @Order(8)
         void updateTicket_shouldModifyExistingTicket() {
-            Ticket updatedTicket = new Ticket(null, "Updated Event", "Updated Location", 100.0, 1);
+            Ticket updatedTicket = new Ticket(null, "Updated Event", "Updated Location", 100.0, 1,1);
             ticketService.updateTicket(1, updatedTicket);
 
             Ticket ticket = ticketService.getTicketById(1);
@@ -119,7 +119,7 @@ class TicketServiceImplTest {
         @Test
         @Order(9)
         void updateTicket_shouldThrowException_whenTicketDoesNotExist() {
-            Ticket updatedTicket = new Ticket(null, "Updated Event", "Updated Location", 100.0, 1);
+            Ticket updatedTicket = new Ticket(null, "Updated Event", "Updated Location", 100.0, 1,1);
 
             ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
                 ticketService.updateTicket(999, updatedTicket); // Invalid ID

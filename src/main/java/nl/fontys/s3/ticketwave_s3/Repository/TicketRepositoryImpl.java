@@ -14,9 +14,9 @@ public class TicketRepositoryImpl implements TicketRepository {
 
     public TicketRepositoryImpl() {
         // Sample data for tickets
-        tickets.add(new Ticket(nextId++, "Concert A", "Eindhoven", 50.0, 1));
-        tickets.add(new Ticket(nextId++, "Art Exhibition", "Nuenen", 30.0, 2));
-        tickets.add(new Ticket(nextId++, "Sports Event", "Amsterdam", 75.0, 3));
+        tickets.add(new Ticket(nextId++, "Concert A", "Eindhoven", 50.0, 1, 1));
+        tickets.add(new Ticket(nextId++, "Art Exhibition", "Nuenen", 30.0, 2, 1));
+        tickets.add(new Ticket(nextId++, "Sports Event", "Amsterdam", 75.0, 3, 2));
     }
 
     @Override
@@ -45,9 +45,7 @@ public class TicketRepositoryImpl implements TicketRepository {
                 existingTicket.setEventName(ticket.getEventName());
                 existingTicket.setLocation(ticket.getLocation());
                 existingTicket.setPrice(ticket.getPrice());
-                existingTicket.setEventId(ticket.getEventId());
-            } else {
-                throw new IllegalArgumentException("Ticket with ID " + ticket.getId() + " does not exist.");
+                existingTicket.setQuantity(ticket.getQuantity());
             }
         }
     }
@@ -60,4 +58,3 @@ public class TicketRepositoryImpl implements TicketRepository {
         }
     }
 }
-

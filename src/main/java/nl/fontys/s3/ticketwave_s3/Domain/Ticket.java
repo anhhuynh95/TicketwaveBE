@@ -14,4 +14,5 @@ public class Ticket {
     private String location;
     private Double price;
     private Integer eventId;
+    private Integer quantity;
 }
