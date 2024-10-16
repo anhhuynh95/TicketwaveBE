@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.sonarqube' version '4.0.0.2929'
+    id 'jacoco'
 }
 
 group = 'nl.fontys.s3'
@@ -33,6 +35,27 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+
+jacoco {
+    toolVersion = "0.8.7"  // Ensure the correct JaCoCo version is being used
+}
+
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'  // Ensure JaCoCo runs after tests
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true  // Required for SonarQube
+        html.required = true  // Enabled for local debugging
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "Ticketwave_S3"
+        property "sonar.projectName", "Ticketwave_S3"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+    }
 }
