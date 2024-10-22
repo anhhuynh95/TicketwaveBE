@@ -7,36 +7,36 @@ stages:
   - build #Compile and package the application
   - test #Run the unit tests
   - code_quality #Run SonarQube analysis
-  - deploy  #Build and deploy the Docker image
+  - build_docker_images  #Build the Docker image
 
 
 build:
   stage: build
   script:
     - ./gradlew assemble # Compile the project, package it
-  #artifacts:
-        #paths:
-          #- build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  #Save the generated JAR file as an artifact for use in later stages
+  artifacts:
+        paths:
+          - build/libs/Ticketwave_S3-0.0.1-SNAPSHOT.jar  #Save the generated JAR file as an artifact for use in later stages
 
 test:
   stage: test
   script:
     - ./gradlew test #Run the unit tests using Gradle
-  #dependencies:
-   # - build  #Ensure that this stage has access to the artifacts (the JAR file) from the build stage
+  dependencies:
+    - build  #Ensure that this stage has access to the artifacts (the JAR file) from the build stage
 
 sonar:
   stage: code_quality
   script:
     - ./gradlew sonarqube  # Run SonarQube analysis
- # dependencies:
-  #  - build  # Ensure SonarQube can use the test results and coverage report
+  dependencies:
+    - build  # Ensure SonarQube can use the test results and coverage report
 
-deploy_docker:
-  stage: deploy
+build_docker_image:
+  stage: build_docker_image
   script:
     - docker build -t spring-boot-app:latest .  # Build the Docker image using the Dockerfile in the repository and tag it as 'latest'
- # dependencies:
-  #  - build
+  dependencies:
+    - build
 
 
