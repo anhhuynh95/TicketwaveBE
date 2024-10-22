@@ -7,7 +7,7 @@ stages:
   - build #Compile and package the application
   - test #Run the unit tests
   - code_quality #Run SonarQube analysis
-  - build_docker_images  #Build the Docker image
+  - build_docker_image  #Build the Docker image
 
 
 build:
