@@ -1,111 +1,103 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
-import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.server.ResponseStatusException;
+import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class) // Control the order of execution
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) // Reset context after each test
+@ExtendWith(MockitoExtension.class)
 class EventServiceImplTest {
 
-    @Autowired
-    private EventService eventService;
+    @Mock
+    private EventRepository eventRepository;
 
-    @Test
-    @Order(1)
-    void createEvent_shouldAddNewEvent() {
-        // Arrange
-        Event newEvent = new Event(null, "Dance Concert", "Rotterdam", "An exciting dance concert.", "2024-09-01T20:00", 75);
+    @InjectMocks
+    private EventServiceImpl eventService;
 
-        // Act
-        eventService.createEvent(newEvent);
-        List<Event> events = eventService.getAllEvents();
+    private Event sampleEvent;
 
-        // Assert
-        assertEquals(4, events.size(), "The number of events should be 4.");
-        Event addedEvent = events.get(3);
-        assertEquals("Dance Concert", addedEvent.getName());
-        assertEquals("Rotterdam", addedEvent.getLocation());
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        sampleEvent = new Event(1, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00", 100);
     }
 
     @Test
-    @Order(2)
     void getAllEvents_shouldReturnAllEvents() {
-        // Act
-        List<Event> events = eventService.getAllEvents();
+        List<Event> events = List.of(sampleEvent, new Event(2, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00", 50));
+        when(eventRepository.findAll()).thenReturn(events);
 
-        // Assert
-        assertEquals(3, events.size(), "There should be 3 events initially.");
+        List<Event> result = eventService.getAllEvents();
+
+        assertEquals(2, result.size());
+        verify(eventRepository, times(1)).findAll();
     }
 
     @Test
-    @Order(3)
     void getEventById_shouldReturnEvent_whenEventExists() {
-        // Act
-        Event event = eventService.getEventById(1);
+        when(eventRepository.findById(sampleEvent.getId())).thenReturn(sampleEvent);
 
-        // Assert
-        assertNotNull(event, "Event with ID 1 should exist.");
+        Event event = eventService.getEventById(sampleEvent.getId());
+
+        assertNotNull(event);
         assertEquals("Concert A", event.getName());
+        verify(eventRepository, times(1)).findById(sampleEvent.getId());
     }
 
     @Test
-    @Order(4)
-    void getEventById_shouldReturnNull_whenEventDoesNotExist() {
-        // Act
-        Event event = eventService.getEventById(999);
+    void getEventById_shouldThrowException_whenEventDoesNotExist() {
+        when(eventRepository.findById(anyInt())).thenReturn(null);
 
-        // Assert
-        assertNull(event, "Event with ID 999 should not exist.");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(999));
+        assertEquals("Event not found", exception.getMessage());
+        verify(eventRepository, times(1)).findById(999);
     }
 
     @Test
-    @Order(5)
+    void createEvent_shouldAddNewEvent() {
+        Event newEvent = new Event(null, "Dance Concert", "Rotterdam", "Exciting dance concert", "2024-09-01T20:00", 75);
+
+        eventService.createEvent(newEvent);
+
+        verify(eventRepository, times(1)).save(newEvent);
+    }
+
+    @Test
     void updateEvent_shouldModifyExistingEvent() {
-        // Arrange
-        Event updatedEvent = new Event(null, "Updated Event", "Updated Location", "Updated Description", "2024-09-15T20:00", 50);
+        Event updatedEvent = new Event(1, "Updated Event", "Updated Location", "Updated Description", "2024-09-15T20:00", 50);
 
-        // Act
         eventService.updateEvent(1, updatedEvent);
-        Event event = eventService.getEventById(1);
 
-        // Assert
-        assertNotNull(event, "Event with ID 1 should exist.");
-        assertEquals("Updated Event", event.getName());
+        verify(eventRepository, times(1)).save(updatedEvent);
     }
 
+
+
     @Test
-    @Order(6)
     void deleteEvent_shouldRemoveExistingEvent() {
-        // Arrange
-        int initialSize = eventService.getAllEvents().size();
+        when(eventRepository.findById(sampleEvent.getId())).thenReturn(sampleEvent);
 
-        // Act
-        eventService.deleteEvent(1);
-        List<Event> events = eventService.getAllEvents();
+        eventService.deleteEvent(sampleEvent.getId());
 
-        // Assert
-        assertEquals(initialSize - 1, events.size(), "The number of events should decrease by 1.");
+        verify(eventRepository, times(1)).deleteById(sampleEvent.getId());
     }
 
     @Test
-    @Order(7)
     void deleteEvent_shouldThrowException_whenEventDoesNotExist() {
-        // Act
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            eventService.deleteEvent(999); // Invalid ID
-        });
+        when(eventRepository.findById(anyInt())).thenReturn(null);
 
-        // Assert
-        assertEquals("Event not found.", exception.getReason());
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.deleteEvent(999));
+        assertEquals("Event not found", exception.getMessage());
+        verify(eventRepository, times(1)).findById(999);
     }
 }
