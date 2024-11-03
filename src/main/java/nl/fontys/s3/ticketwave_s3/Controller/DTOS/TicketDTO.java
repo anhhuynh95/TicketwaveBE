@@ -5,8 +5,9 @@ import lombok.Data;
 @Data
 public class TicketDTO {
     private Integer id;
-    private String eventName;
-    private String location;
+    private Integer eventId;
+    private String ticketName;
     private Double price;
     private Integer quantity;
 }
+

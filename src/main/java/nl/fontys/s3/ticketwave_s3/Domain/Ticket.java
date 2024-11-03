@@ -7,12 +7,12 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Ticket {
     private Integer id;
-    private String eventName;
-    private String location;
-    private Double price;
     private Integer eventId;
+    private String ticketName;
+    private Double price;
     private Integer quantity;
 }
+
+

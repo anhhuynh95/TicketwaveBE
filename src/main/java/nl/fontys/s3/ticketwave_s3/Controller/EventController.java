@@ -35,18 +35,19 @@ public class EventController {
     /**Retrieve a specific event by its ID.*/
     @GetMapping("/{id}")
     public EventDTO getEvent(@PathVariable Integer id) {
-        Event event = eventService.getEventById(id);
-        if (event == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+        try {
+            Event event = eventService.getEventById(id);
+            return eventMapper.toDTO(event);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
-        return eventMapper.toDTO(event); // Map Event entity to DTO
     }
 
     /**Create a new event.*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createEvent(@RequestBody EventDTO eventDTO) {
-        Event event = eventMapper.toEntity(eventDTO); // Map DTO to Event entity
+        Event event = eventMapper.toDomain(eventDTO);
         eventService.createEvent(event);
     }
 
@@ -54,7 +55,7 @@ public class EventController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateEvent(@PathVariable Integer id, @RequestBody EventDTO eventDTO) {
-        Event event = eventMapper.toEntity(eventDTO); // Map DTO to Event entity
+        Event event = eventMapper.toDomain(eventDTO);
         event.setId(id); // Ensure the correct ID is set
         eventService.updateEvent(id, event);
     }
@@ -63,6 +64,10 @@ public class EventController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEvent(@PathVariable Integer id) {
-        eventService.deleteEvent(id);
+        try {
+            eventService.deleteEvent(id);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 }
