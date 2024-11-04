@@ -44,4 +44,10 @@ public class TicketRepositoryImpl implements TicketRepository {
     public void deleteById(Integer id) {
         ticketDBRepository.deleteById(id);
     }
+    @Override
+    public List<Ticket> findByEventId(Integer eventId) {
+        return ticketDBRepository.findByEventId(eventId).stream()
+                .map(ticketMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

@@ -101,25 +101,62 @@ public class TicketServiceImpl implements TicketService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
         }
 
+        // Check if enough tickets are available
         if (event.getTicketQuantity() < quantity) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough tickets available.");
         }
 
+        // Deduct the purchased quantity from the event's available ticket count
         event.setTicketQuantity(event.getTicketQuantity() - quantity);
         eventRepository.save(event);
 
-        purchasedTicketQuantities.merge(id, quantity, Integer::sum);
+        // Update the purchased quantity for the ticket
+       // ticket.setPurchasedQuantity((ticket.getPurchasedQuantity() == null ? 0 : ticket.getPurchasedQuantity()) + quantity);
+        EventEntity eventEntity = eventMapper.toEntity(event);
+        ticketRepository.save(ticket, eventEntity);
+
+        // Track purchased tickets in the list if it’s not already added
         if (!purchasedTickets.contains(ticket)) {
             purchasedTickets.add(ticket);
         }
-
-        ticket.setQuantity(purchasedTicketQuantities.get(id));
-        EventEntity eventEntity = eventMapper.toEntity(event);
-        ticketRepository.save(ticket, eventEntity);
     }
 
     @Override
     public List<Ticket> getPurchasedTickets() {
         return new ArrayList<>(purchasedTickets);
     }
+
+    @Override
+    public List<Ticket> getTicketsByEventId(Integer eventId) {
+        return ticketRepository.findByEventId(eventId);
+    }
+    @Override
+    public void cancelTickets(Integer ticketId, Integer cancelQuantity) {
+        // Retrieve the ticket by ID
+        Ticket ticket = getTicketById(ticketId);
+        if (ticket == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+        }
+
+        // Retrieve the associated event
+        Event event = eventRepository.findById(ticket.getEventId());
+        if (event == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+        }
+
+        // Ensure cancel quantity is not greater than the purchased quantity
+        if (cancelQuantity > ticket.getQuantity()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel more tickets than purchased.");
+        }
+
+        // Update ticket quantity and event available tickets
+        ticket.setQuantity(ticket.getQuantity() - cancelQuantity);
+        event.setTicketQuantity(event.getTicketQuantity() + cancelQuantity);
+
+        // Save the updated event and ticket
+        eventRepository.save(event);
+        EventEntity eventEntity = eventMapper.toEntity(event);
+        ticketRepository.save(ticket, eventEntity);
+    }
+
 }

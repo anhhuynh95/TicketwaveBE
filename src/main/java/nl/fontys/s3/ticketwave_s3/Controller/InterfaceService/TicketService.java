@@ -13,4 +13,6 @@ public interface TicketService {
     void updateTicket(Integer id, Ticket ticket);
     void deleteTicket(Integer id);
     void purchaseTicket(Integer id, Integer quantity);
+    List<Ticket> getTicketsByEventId(Integer eventId);
+    void cancelTickets(Integer ticketId, Integer cancelQuantity);
 }

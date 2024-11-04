@@ -9,5 +9,6 @@ public class TicketDTO {
     private String ticketName;
     private Double price;
     private Integer quantity;
+    private Integer purchasedQuantity;
 }
 

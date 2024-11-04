@@ -30,6 +30,7 @@ public class TicketMapper {
         ticket.setTicketName(ticketDTO.getTicketName());
         ticket.setPrice(ticketDTO.getPrice());
         ticket.setQuantity(ticketDTO.getQuantity());
+       // ticket.setPurchasedQuantity(ticketDTO.getPurchasedQuantity());
         return ticket;
     }
 

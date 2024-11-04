@@ -2,14 +2,22 @@ package nl.fontys.s3.ticketwave_s3.Mapper;
 
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class EventMapper {
 
+    @Autowired
+    private TicketMapper ticketMapper;
+
     // Convert domain Event to DTO
-    public EventDTO toDTO(Event event) {
+    public EventDTO toDTO(Event event, List<Ticket> tickets) {
         if (event == null) {
             return null;
         }
@@ -20,6 +28,7 @@ public class EventMapper {
         dto.setDescription(event.getDescription());
         dto.setDateTime(event.getDateTime());
         dto.setTicketQuantity(event.getTicketQuantity());
+        dto.setTickets(tickets.stream().map(ticketMapper::toDTO).collect(Collectors.toList()));
         return dto;
     }
 

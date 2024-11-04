@@ -2,6 +2,8 @@ package nl.fontys.s3.ticketwave_s3.Controller;
 
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
+import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,21 +25,27 @@ public class EventController {
     @Autowired
     private EventMapper eventMapper;
 
+    @Autowired
+    private TicketService ticketService;
+
     /**Retrieve all events.*/
     @GetMapping
     public List<EventDTO> getAllEvents() {
         List<Event> events = eventService.getAllEvents();
         return events.stream()
-                .map(eventMapper::toDTO) // Map Event entities to DTOs
+                .map(event -> {
+                    List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
+                    return eventMapper.toDTO(event, tickets);
+                })
                 .collect(Collectors.toList());
     }
 
-    /**Retrieve a specific event by its ID.*/
     @GetMapping("/{id}")
     public EventDTO getEvent(@PathVariable Integer id) {
         try {
             Event event = eventService.getEventById(id);
-            return eventMapper.toDTO(event);
+            List<Ticket> tickets = ticketService.getTicketsByEventId(id); // Fetch tickets for the event
+            return eventMapper.toDTO(event, tickets);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }

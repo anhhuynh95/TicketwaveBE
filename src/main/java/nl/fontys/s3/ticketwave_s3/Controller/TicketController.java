@@ -8,10 +8,12 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -105,5 +107,44 @@ public class TicketController {
         }
 
         ticketService.deleteTicket(id);
+    }
+
+    @GetMapping("/by-event/{eventId}")
+    public List<TicketDTO> getTicketsByEventId(@PathVariable Integer eventId) {
+        List<Ticket> tickets = ticketService.getTicketsByEventId(eventId); // Fetch tickets specific to eventId
+        return tickets.stream()
+                .map(ticketMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{eventId}/{ticketId}/purchase")
+    @ResponseStatus(HttpStatus.OK)
+    public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
+        Ticket ticket = ticketService.getTicketById(ticketId);
+        if (ticket == null || ticket.getEventId() != eventId || ticket.getQuantity() < quantity) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid ticket or insufficient quantity.");
+        }
+
+        // Deduct the quantity and save
+        ticket.setQuantity(ticket.getQuantity() - quantity);
+        ticketService.updateTicket(ticketId, ticket);
+    }
+
+    @GetMapping("/purchased")
+    public List<TicketDTO> getPurchasedTickets() {
+        List<Ticket> purchasedTickets = ticketService.getPurchasedTickets();
+        return purchasedTickets.stream()
+                .map(ticketMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{ticketId}/cancel")
+    public ResponseEntity<Void> cancelTicket(@PathVariable Integer ticketId, @RequestBody Map<String, Integer> requestBody) {
+       Integer cancelQuantity = requestBody.get("cancelQuantity");
+        if (cancelQuantity == null || cancelQuantity <= 0) {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cancel quantity.");
+        }
+       ticketService.cancelTickets(ticketId, cancelQuantity);
+       return ResponseEntity.noContent().build();
     }
 }
