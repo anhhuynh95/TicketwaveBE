@@ -11,7 +11,6 @@ import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.PurchasedTicketRepositor
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,20 +23,23 @@ import java.util.stream.Collectors;
 @Service
 public class TicketServiceImpl implements TicketService {
 
-    @Autowired
-    private TicketRepository ticketRepository;
+    private final TicketRepository ticketRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventRepository eventRepository;
 
-    @Autowired
-    private PurchasedTicketRepository purchasedTicketRepository;
+    private final PurchasedTicketRepository purchasedTicketRepository;
 
-    @Autowired
-    private EventMapper eventMapper;
+    private final EventMapper eventMapper;
 
-    @Autowired
-    private TicketMapper ticketMapper;
+    private final TicketMapper ticketMapper;
+
+    public TicketServiceImpl(TicketRepository ticketRepository, EventRepository eventRepository, PurchasedTicketRepository purchasedTicketRepository, EventMapper eventMapper, TicketMapper ticketMapper) {
+        this.ticketRepository = ticketRepository;
+        this.eventRepository = eventRepository;
+        this.purchasedTicketRepository = purchasedTicketRepository;
+        this.eventMapper = eventMapper;
+        this.ticketMapper = ticketMapper;
+    }
 
     @Override
     public List<Ticket> getAllTickets() {

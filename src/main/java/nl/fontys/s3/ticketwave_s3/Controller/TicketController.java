@@ -6,7 +6,6 @@ import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +20,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/tickets")
 public class TicketController {
 
-    @Autowired
-    private TicketService ticketService;
+    private final TicketService ticketService;
 
-    @Autowired
-    private TicketMapper ticketMapper;
+    private final TicketMapper ticketMapper;
 
-    @Autowired
-    private EventService eventService;
+    private final EventService eventService;
+
+    public TicketController(TicketService ticketService, TicketMapper ticketMapper, EventService eventService) {
+        this.ticketService = ticketService;
+        this.ticketMapper = ticketMapper;
+        this.eventService = eventService;
+    }
 
     /**Retrieve all tickets, optionally filtered by max price.*/
     @GetMapping()

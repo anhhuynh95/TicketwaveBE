@@ -5,7 +5,6 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventDBRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,11 +13,14 @@ import java.util.stream.Collectors;
 @Repository
 public class EventRepositoryImpl implements EventRepository {
 
-    @Autowired
-    private EventDBRepository eventDBRepository;
+    private final EventDBRepository eventDBRepository;
 
-    @Autowired
-    private EventMapper eventMapper;
+    private final EventMapper eventMapper;
+
+    public EventRepositoryImpl(EventDBRepository eventDBRepository, EventMapper eventMapper) {
+        this.eventDBRepository = eventDBRepository;
+        this.eventMapper = eventMapper;
+    }
 
     /**Retrieve all events from the in-memory store*/
     @Override

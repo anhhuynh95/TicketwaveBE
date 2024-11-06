@@ -7,7 +7,6 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketDBRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,14 +16,17 @@ import java.util.stream.Collectors;
 @Repository
 public class TicketRepositoryImpl implements TicketRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private TicketDBRepository ticketDBRepository;
+    private final TicketDBRepository ticketDBRepository;
 
-    @Autowired
-    private TicketMapper ticketMapper;
+    private final TicketMapper ticketMapper;
+
+    public TicketRepositoryImpl(EntityManager entityManager, TicketDBRepository ticketDBRepository, TicketMapper ticketMapper) {
+        this.entityManager = entityManager;
+        this.ticketDBRepository = ticketDBRepository;
+        this.ticketMapper = ticketMapper;
+    }
 
     @Override
     public List<Ticket> findAll() {

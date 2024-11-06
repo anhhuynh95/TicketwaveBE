@@ -4,7 +4,6 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,8 +12,11 @@ import java.util.stream.Collectors;
 @Component
 public class EventMapper {
 
-    @Autowired
-    private TicketMapper ticketMapper;
+    private final TicketMapper ticketMapper;
+
+    public EventMapper(TicketMapper ticketMapper) {
+        this.ticketMapper = ticketMapper;
+    }
 
     // Convert domain Event to DTO
     public EventDTO toDTO(Event event, List<Ticket> tickets) {

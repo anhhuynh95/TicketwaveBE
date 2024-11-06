@@ -6,7 +6,6 @@ import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,14 +18,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/events")
 public class EventController {
 
-    @Autowired
-    private EventService eventService;
+    private final EventService eventService;
 
-    @Autowired
-    private EventMapper eventMapper;
+    private final EventMapper eventMapper;
 
-    @Autowired
-    private TicketService ticketService;
+    private final TicketService ticketService;
+
+    public EventController(EventService eventService, EventMapper eventMapper, TicketService ticketService) {
+        this.eventService = eventService;
+        this.eventMapper = eventMapper;
+        this.ticketService = ticketService;
+    }
 
     /**Retrieve all events.*/
     @GetMapping
