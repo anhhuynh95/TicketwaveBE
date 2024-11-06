@@ -120,14 +120,7 @@ public class TicketController {
     @PutMapping("/{eventId}/{ticketId}/purchase")
     @ResponseStatus(HttpStatus.OK)
     public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        if (ticket == null || ticket.getEventId() != eventId || ticket.getQuantity() < quantity) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid ticket or insufficient quantity.");
-        }
-
-        // Deduct the quantity and save
-        ticket.setQuantity(ticket.getQuantity() - quantity);
-        ticketService.updateTicket(ticketId, ticket);
+        ticketService.purchaseTicket(ticketId, quantity);
     }
 
     @GetMapping("/purchased")

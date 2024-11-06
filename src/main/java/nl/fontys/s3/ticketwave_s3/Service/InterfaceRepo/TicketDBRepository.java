@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TicketDBRepository extends JpaRepository<TicketEntity, Integer> {
-    List<TicketEntity> findByEventId(Integer eventId);
+   List<TicketEntity> findByEventId(Integer eventId);
 }

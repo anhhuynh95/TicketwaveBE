@@ -21,7 +21,7 @@ build:
 test:
   stage: test
   script:
-    - ./gradlew test #Run the unit tests using Gradle
+    - ./gradlew clean test jacocoTestReport # Run tests and generate coverage report
   dependencies:
     - build  #Ensure that this stage has access to the artifacts (the JAR file) from the build stage
 

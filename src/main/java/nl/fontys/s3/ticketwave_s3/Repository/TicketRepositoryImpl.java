@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Repository;
 
+import jakarta.persistence.EntityManager;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
@@ -10,10 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
 public class TicketRepositoryImpl implements TicketRepository {
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private TicketDBRepository ticketDBRepository;
@@ -29,15 +34,24 @@ public class TicketRepositoryImpl implements TicketRepository {
     }
 
     @Override
-    public Ticket findById(Integer id) {
-        TicketEntity entity = ticketDBRepository.findById(id).orElse(null);
-        return entity != null ? ticketMapper.toDomain(entity) : null;
+    public Optional<Ticket> findById(Integer id) {
+        return ticketDBRepository.findById(id).map(ticketMapper::toDomain);
+    }
+
+    @Override
+    public Optional<TicketEntity> findEntityById(Integer id) {
+        return ticketDBRepository.findById(id);
     }
 
     @Override
     public void save(Ticket ticket, EventEntity eventEntity) {
         TicketEntity entity = ticketMapper.toEntity(ticket, eventEntity);
         ticketDBRepository.save(entity);
+    }
+
+    @Override
+    public void saveEntity(TicketEntity ticketEntity) {
+        entityManager.persist(ticketEntity);
     }
 
     @Override
