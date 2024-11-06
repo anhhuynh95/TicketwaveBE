@@ -30,7 +30,7 @@ sonar:
   script:
     - ./gradlew sonarqube  # Run SonarQube analysis
   dependencies:
-    - build  # Ensure SonarQube can use the test results and coverage report
+    - test  # Ensure SonarQube can use the test results and coverage report
 
 build_docker_image:
   stage: build_docker_image
