@@ -125,6 +125,9 @@ public class TicketController {
     @PutMapping("/{eventId}/{ticketId}/purchase")
     @ResponseStatus(HttpStatus.OK)
     public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
+        if (quantity <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be a positive integer.");
+        }
         ticketService.purchaseTicket(ticketId, quantity);
     }
 

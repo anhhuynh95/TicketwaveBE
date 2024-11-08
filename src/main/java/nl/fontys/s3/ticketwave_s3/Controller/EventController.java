@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
+import jakarta.validation.Valid;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
@@ -7,6 +8,7 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,6 +17,7 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/events")
+@Validated
 public class EventController {
 
     private final EventService eventService;
@@ -45,7 +48,7 @@ public class EventController {
     public EventDTO getEvent(@PathVariable Integer id) {
         try {
             Event event = eventService.getEventById(id);
-            List<Ticket> tickets = ticketService.getTicketsByEventId(id); // Fetch tickets for the event
+            List<Ticket> tickets = ticketService.getTicketsByEventId(id);
             return eventMapper.toDTO(event, tickets);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
@@ -55,7 +58,7 @@ public class EventController {
     /**Create a new event.*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createEvent(@RequestBody EventDTO eventDTO) {
+    public void createEvent(@Valid @RequestBody EventDTO eventDTO) {
         Event event = eventMapper.toDomain(eventDTO);
         eventService.createEvent(event);
     }
