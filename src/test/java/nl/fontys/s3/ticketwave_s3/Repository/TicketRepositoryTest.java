@@ -71,7 +71,7 @@ class TicketRepositoryTest {
     }
 
     @Test
-    public void testSaveTicketAndPurchasedTicket() {
+    void testSaveTicketAndPurchasedTicket() {
         // Create EventEntity and save it first
         EventEntity event = new EventEntity();
         event.setName("Sample Event");

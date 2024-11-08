@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class TicketRepositoryImpl implements TicketRepository {
@@ -32,7 +31,7 @@ public class TicketRepositoryImpl implements TicketRepository {
     public List<Ticket> findAll() {
         return ticketDBRepository.findAll().stream()
                 .map(ticketMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -64,6 +63,6 @@ public class TicketRepositoryImpl implements TicketRepository {
     public List<Ticket> findByEventId(Integer eventId) {
         return ticketDBRepository.findByEventId(eventId).stream()
                 .map(ticketMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

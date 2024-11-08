@@ -2,12 +2,10 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -24,80 +22,100 @@ class EventServiceImplTest {
     @InjectMocks
     private EventServiceImpl eventService;
 
-    private Event sampleEvent;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        sampleEvent = new Event(1, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00", 100);
-    }
-
     @Test
     void getAllEvents_shouldReturnAllEvents() {
-        List<Event> events = List.of(sampleEvent, new Event(2, "Art Exhibition", "Nuenen", "A stunning art exhibition", "2024-09-05T18:00", 50));
+        List<Event> events = List.of(
+                Event.builder()
+                        .id(1)
+                        .name("Concert")
+                        .location("Amsterdam")
+                        .build(),
+                Event.builder()
+                        .id(2)
+                        .name("Festival")
+                        .location("Rotterdam")
+                        .build()
+        );
         when(eventRepository.findAll()).thenReturn(events);
 
         List<Event> result = eventService.getAllEvents();
 
-        assertEquals(2, result.size());
-        verify(eventRepository, times(1)).findAll();
+        assertEquals(events, result);
+        verify(eventRepository).findAll();
     }
 
     @Test
     void getEventById_shouldReturnEvent_whenEventExists() {
-        when(eventRepository.findById(sampleEvent.getId())).thenReturn(sampleEvent);
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .build();
+        when(eventRepository.findById(1)).thenReturn(event);
 
-        Event event = eventService.getEventById(sampleEvent.getId());
+        Event result = eventService.getEventById(1);
 
-        assertNotNull(event);
-        assertEquals("Concert A", event.getName());
-        verify(eventRepository, times(1)).findById(sampleEvent.getId());
+        assertEquals(event, result);
+        verify(eventRepository).findById(1);
     }
 
     @Test
-    void getEventById_shouldThrowException_whenEventDoesNotExist() {
-        when(eventRepository.findById(anyInt())).thenReturn(null);
+    void getEventById_shouldThrowException_whenEventNotFound() {
+        when(eventRepository.findById(1)).thenReturn(null);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(999));
+        Exception exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(1));
         assertEquals("Event not found", exception.getMessage());
-        verify(eventRepository, times(1)).findById(999);
+        verify(eventRepository).findById(1);
     }
 
     @Test
-    void createEvent_shouldAddNewEvent() {
-        Event newEvent = new Event(null, "Dance Concert", "Rotterdam", "Exciting dance concert", "2024-09-01T20:00", 75);
+    void createEvent_shouldSaveEvent() {
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .build();
 
-        eventService.createEvent(newEvent);
+        eventService.createEvent(event);
 
-        verify(eventRepository, times(1)).save(newEvent);
+        verify(eventRepository).save(event);
     }
 
     @Test
-    void updateEvent_shouldModifyExistingEvent() {
-        Event updatedEvent = new Event(1, "Updated Event", "Updated Location", "Updated Description", "2024-09-15T20:00", 50);
+    void updateEvent_shouldUpdateExistingEvent() {
+        Event event = Event.builder()
+                .id(1)
+                .name("Updated Concert")
+                .location("Amsterdam")
+                .build();
 
-        eventService.updateEvent(1, updatedEvent);
+        eventService.updateEvent(1, event);
 
-        verify(eventRepository, times(1)).save(updatedEvent);
-    }
-
-
-
-    @Test
-    void deleteEvent_shouldRemoveExistingEvent() {
-        when(eventRepository.findById(sampleEvent.getId())).thenReturn(sampleEvent);
-
-        eventService.deleteEvent(sampleEvent.getId());
-
-        verify(eventRepository, times(1)).deleteById(sampleEvent.getId());
+        verify(eventRepository).save(event);
     }
 
     @Test
-    void deleteEvent_shouldThrowException_whenEventDoesNotExist() {
-        when(eventRepository.findById(anyInt())).thenReturn(null);
+    void deleteEvent_shouldDeleteEvent_whenEventExists() {
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .build();
+        when(eventRepository.findById(1)).thenReturn(event);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.deleteEvent(999));
+        eventService.deleteEvent(1);
+
+        verify(eventRepository).findById(1);
+        verify(eventRepository).deleteById(1);
+    }
+
+    @Test
+    void deleteEvent_shouldThrowException_whenEventNotFound() {
+        when(eventRepository.findById(1)).thenReturn(null);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> eventService.deleteEvent(1));
         assertEquals("Event not found", exception.getMessage());
-        verify(eventRepository, times(1)).findById(999);
+        verify(eventRepository).findById(1);
+        verify(eventRepository, never()).deleteById(anyInt());
     }
 }

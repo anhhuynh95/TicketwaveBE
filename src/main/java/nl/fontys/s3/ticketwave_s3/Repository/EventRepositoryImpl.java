@@ -8,7 +8,6 @@ import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 public class EventRepositoryImpl implements EventRepository {
@@ -27,7 +26,7 @@ public class EventRepositoryImpl implements EventRepository {
     public List<Event> findAll() {
         return eventDBRepository.findAll().stream()
                 .map(eventMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**Find an event by its ID.*/

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PurchasedTicketEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

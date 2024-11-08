@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class EventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

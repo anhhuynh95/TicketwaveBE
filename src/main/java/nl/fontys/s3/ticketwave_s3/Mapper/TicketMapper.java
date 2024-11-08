@@ -1,8 +1,10 @@
 package nl.fontys.s3.ticketwave_s3.Mapper;
 
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
+import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +32,6 @@ public class TicketMapper {
         ticket.setTicketName(ticketDTO.getTicketName());
         ticket.setPrice(ticketDTO.getPrice());
         ticket.setQuantity(ticketDTO.getQuantity());
-       // ticket.setPurchasedQuantity(ticketDTO.getPurchasedQuantity());
         return ticket;
     }
 
@@ -54,5 +55,21 @@ public class TicketMapper {
         entity.setPrice(ticket.getPrice());
         entity.setQuantity(ticket.getQuantity());
         return entity;
+    }
+
+    public PurchasedTicketDTO toPurchasedTicketDTO(PurchasedTicketEntity purchasedTicketEntity) {
+        if (purchasedTicketEntity == null) return null;
+        PurchasedTicketDTO purchasedTicketDTO = new PurchasedTicketDTO();
+        TicketEntity ticketEntity = purchasedTicketEntity.getTicket();
+        EventEntity eventEntity = ticketEntity.getEvent();
+
+        purchasedTicketDTO.setTicketId(ticketEntity.getId());
+        purchasedTicketDTO.setTicketName(ticketEntity.getTicketName());
+        purchasedTicketDTO.setPrice(ticketEntity.getPrice());
+        purchasedTicketDTO.setQuantity(purchasedTicketEntity.getPurchaseQuantity());
+        purchasedTicketDTO.setEventName(eventEntity.getName());
+        purchasedTicketDTO.setLocation(eventEntity.getLocation());
+
+        return purchasedTicketDTO;
     }
 }

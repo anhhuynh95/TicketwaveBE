@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
@@ -13,12 +14,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/tickets")
 public class TicketController {
+
+    private static final String INVALID_ID_MESSAGE = "ID must be a positive integer.";
+    private static final String TICKET_NOT_FOUND_MESSAGE = "Ticket not found.";
 
     private final TicketService ticketService;
 
@@ -45,19 +48,19 @@ public class TicketController {
 
         return tickets.stream()
                 .map(ticketMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**Retrieve a specific ticket by ID.*/
     @GetMapping("/{id}")
     public TicketDTO getTicket(@PathVariable Integer id) {
         if (id <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID must be a positive integer.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_ID_MESSAGE);
         }
 
         Ticket ticket = ticketService.getTicketById(id);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
 
         return ticketMapper.toDTO(ticket);
@@ -82,12 +85,12 @@ public class TicketController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTicket(@PathVariable Integer id, @RequestBody TicketDTO input) {
         if (id <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID must be a positive integer.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_ID_MESSAGE);
         }
 
         Ticket ticket = ticketService.getTicketById(id);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
 
         Ticket updatedTicket = ticketMapper.toDomain(input);
@@ -100,12 +103,12 @@ public class TicketController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTicket(@PathVariable Integer id) {
         if (id <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID must be a positive integer.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_ID_MESSAGE);
         }
 
         Ticket ticket = ticketService.getTicketById(id);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
 
         ticketService.deleteTicket(id);
@@ -113,10 +116,10 @@ public class TicketController {
 
     @GetMapping("/by-event/{eventId}")
     public List<TicketDTO> getTicketsByEventId(@PathVariable Integer eventId) {
-        List<Ticket> tickets = ticketService.getTicketsByEventId(eventId); // Fetch tickets specific to eventId
+        List<Ticket> tickets = ticketService.getTicketsByEventId(eventId);
         return tickets.stream()
                 .map(ticketMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @PutMapping("/{eventId}/{ticketId}/purchase")
@@ -126,11 +129,8 @@ public class TicketController {
     }
 
     @GetMapping("/purchased")
-    public List<TicketDTO> getPurchasedTickets() {
-        List<Ticket> purchasedTickets = ticketService.getPurchasedTickets();
-        return purchasedTickets.stream()
-                .map(ticketMapper::toDTO)
-                .collect(Collectors.toList());
+    public List<PurchasedTicketDTO> getPurchasedTickets() {
+        return ticketService.getPurchasedTickets();
     }
 
     @PutMapping("/{ticketId}/cancel")

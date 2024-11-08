@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
@@ -18,10 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TicketServiceImpl implements TicketService {
+
+    private static final String TICKET_NOT_FOUND_MESSAGE = "Ticket not found.";
+    private static final String EVENT_NOT_FOUND_MESSAGE = "Event not found.";
 
     private final TicketRepository ticketRepository;
 
@@ -49,21 +52,21 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Ticket getTicketById(Integer id) {
         return ticketRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE));
     }
 
     @Override
     public List<Ticket> getTicketsByPrice(Double maxPrice) {
         return ticketRepository.findAll().stream()
                 .filter(ticket -> ticket.getPrice() <= maxPrice)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public void createTicket(Ticket ticket) {
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, EVENT_NOT_FOUND_MESSAGE);
         }
         EventEntity eventEntity = eventMapper.toEntity(event);
         ticketRepository.save(ticket, eventEntity);
@@ -73,12 +76,12 @@ public class TicketServiceImpl implements TicketService {
     public void updateTicket(Integer id, Ticket ticket) {
         Ticket existingTicket = getTicketById(id);
         if (existingTicket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
         ticket.setId(id);  // Ensure the ticket ID is set correctly
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, EVENT_NOT_FOUND_MESSAGE);
         }
         EventEntity eventEntity = eventMapper.toEntity(event);
         ticketRepository.save(ticket, eventEntity);
@@ -88,7 +91,7 @@ public class TicketServiceImpl implements TicketService {
     public void deleteTicket(Integer id) {
         Ticket ticket = getTicketById(id);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
         ticketRepository.deleteById(id);
     }
@@ -99,12 +102,12 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket ticket = getTicketById(ticketId);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
 
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, EVENT_NOT_FOUND_MESSAGE);
         }
 
         if (event.getTicketQuantity() < quantity || ticket.getQuantity() < quantity) {
@@ -132,16 +135,10 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<Ticket> getPurchasedTickets() {
+    public List<PurchasedTicketDTO> getPurchasedTickets() {
         return purchasedTicketRepository.findAll().stream()
-                .map(this::mapToPurchasedTicketDomain)
-                .collect(Collectors.toList());
-    }
-
-    private Ticket mapToPurchasedTicketDomain(PurchasedTicketEntity purchasedTicketEntity) {
-        Ticket ticket = ticketMapper.toDomain(purchasedTicketEntity.getTicket());
-        ticket.setQuantity(purchasedTicketEntity.getPurchaseQuantity());
-        return ticket;
+                .map(ticketMapper::toPurchasedTicketDTO)
+                .toList();
     }
 
     @Override
@@ -154,12 +151,12 @@ public class TicketServiceImpl implements TicketService {
     public void cancelTickets(Integer ticketId, Integer cancelQuantity) {
         Ticket ticket = getTicketById(ticketId);
         if (ticket == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
 
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, EVENT_NOT_FOUND_MESSAGE);
         }
 
         List<PurchasedTicketEntity> purchasedTickets = purchasedTicketRepository.findByTicketId(ticketId);
@@ -167,29 +164,41 @@ public class TicketServiceImpl implements TicketService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Purchased ticket record not found.");
         }
 
-        PurchasedTicketEntity purchasedTicket = purchasedTickets.get(0);
+        // Calculate the total purchased quantity for the ticket
+        int totalPurchasedQuantity = purchasedTickets.stream()
+                .mapToInt(PurchasedTicketEntity::getPurchaseQuantity)
+                .sum();
 
-        if (cancelQuantity > purchasedTicket.getPurchaseQuantity()) {
+        // Check if we have enough quantity to cancel
+        if (cancelQuantity > totalPurchasedQuantity) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel more tickets than purchased.");
         }
 
-        if (cancelQuantity.equals(purchasedTicket.getPurchaseQuantity())) {
-            purchasedTicketRepository.delete(purchasedTicket);
-        } else {
-            purchasedTicket.setPurchaseQuantity(purchasedTicket.getPurchaseQuantity() - cancelQuantity);
-            purchasedTicketRepository.save(purchasedTicket);
+        // Iterate over purchased tickets to cancel tickets across multiple records if necessary
+        int remainingCancelQuantity = cancelQuantity;
+        for (PurchasedTicketEntity purchasedTicket : purchasedTickets) {
+            int purchaseQuantity = purchasedTicket.getPurchaseQuantity();
+
+            if (remainingCancelQuantity >= purchaseQuantity) {
+                // Cancel the entire record
+                remainingCancelQuantity -= purchaseQuantity;
+                purchasedTicketRepository.delete(purchasedTicket);
+            } else {
+                // Partially cancel this record
+                purchasedTicket.setPurchaseQuantity(purchaseQuantity - remainingCancelQuantity);
+                purchasedTicketRepository.save(purchasedTicket);
+                break;
+            }
         }
 
-        // Restore the quantity in EventEntity
+        // Restore quantities in Event and Ticket entities
         event.setTicketQuantity(event.getTicketQuantity() + cancelQuantity);
         eventRepository.save(event);
 
-        // Restore the quantity in TicketEntity
         TicketEntity ticketEntity = ticketRepository.findEntityById(ticketId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket entity not found."));
         ticketEntity.setQuantity(ticketEntity.getQuantity() + cancelQuantity);
         ticketRepository.saveEntity(ticketEntity);
-
     }
 
 }

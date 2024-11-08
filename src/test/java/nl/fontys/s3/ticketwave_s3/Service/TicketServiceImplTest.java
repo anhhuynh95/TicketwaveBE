@@ -1,20 +1,25 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
+import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
+import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
+import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
+import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.PurchasedTicketRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +28,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TicketServiceImplTest {
+    private static final String TICKET_NOT_FOUND_MESSAGE = "Ticket not found.";
+    private static final String EVENT_NOT_FOUND_MESSAGE = "Event not found.";
 
     @Mock
     private TicketRepository ticketRepository;
@@ -31,179 +38,408 @@ class TicketServiceImplTest {
     private EventRepository eventRepository;
 
     @Mock
+    private PurchasedTicketRepository purchasedTicketRepository;
+
+    @Mock
     private EventMapper eventMapper;
 
+    @Mock
+    private TicketMapper ticketMapper;
+
     @InjectMocks
-    private TicketServiceImpl ticketServiceImpl;
-
-    private Event sampleEvent;
-    private Ticket sampleTicket;
-    private EventEntity sampleEventEntity;
-    private TicketEntity sampleTicketEntity;
-
-    @BeforeEach
-    void setUp() {
-        sampleEvent = new Event(1, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00", 10);
-        sampleTicket = new Ticket(1, 1, "VIP", 60.0, 5); // assuming initial quantity of 5
-        sampleEventEntity = new EventEntity(1, "Concert A", "Eindhoven", "An exciting concert event", "2024-09-01T20:00", 10, null);
-        sampleTicketEntity = new TicketEntity(1, sampleEventEntity, "VIP", 60.0, 5);
-    }
+    private TicketServiceImpl ticketService;
 
     @Test
     void getAllTickets_shouldReturnAllTickets() {
-        when(ticketRepository.findAll()).thenReturn(List.of(sampleTicket));
+        List<Ticket> tickets = List.of(Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build());
+        when(ticketRepository.findAll()).thenReturn(tickets);
 
-        List<Ticket> tickets = ticketServiceImpl.getAllTickets();
+        List<Ticket> result = ticketService.getAllTickets();
 
-        assertEquals(1, tickets.size());
-        assertEquals("VIP", tickets.get(0).getTicketName());
+        assertEquals(tickets, result);
         verify(ticketRepository).findAll();
     }
 
     @Test
     void getTicketById_shouldReturnTicket_whenTicketExists() {
-        when(ticketRepository.findById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicket));
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
 
-        Ticket ticket = ticketServiceImpl.getTicketById(sampleTicket.getId());
+        Ticket result = ticketService.getTicketById(1);
 
-        assertNotNull(ticket);
-        assertEquals("VIP", ticket.getTicketName());
-        verify(ticketRepository).findById(sampleTicket.getId());
+        assertEquals(ticket, result);
+        verify(ticketRepository).findById(1);
     }
 
     @Test
     void getTicketById_shouldThrowException_whenTicketNotFound() {
-        when(ticketRepository.findById(999)).thenReturn(Optional.empty());
+        when(ticketRepository.findById(1)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketServiceImpl.getTicketById(999));
-
-        assertEquals("Ticket not found.", exception.getReason());
-        verify(ticketRepository).findById(999);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.getTicketById(1));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(TICKET_NOT_FOUND_MESSAGE, exception.getReason());
+        verify(ticketRepository).findById(1);
     }
 
     @Test
-    void createTicket_shouldAddNewTicket_whenEventExists() {
-        when(eventRepository.findById(sampleEvent.getId())).thenReturn(sampleEvent);
-        when(eventMapper.toEntity(sampleEvent)).thenReturn(sampleEventEntity);
+    void getTicketsByPrice_shouldReturnFilteredTickets() {
+        Ticket ticket1 = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(50.0)
+                .quantity(10)
+                .build();
+        Ticket ticket2 = Ticket.builder()
+                .id(2)
+                .eventId(2)
+                .ticketName("Standard")
+                .price(150.0)
+                .quantity(20)
+                .build();
 
-        ticketServiceImpl.createTicket(sampleTicket);
+        when(ticketRepository.findAll()).thenReturn(List.of(ticket1, ticket2));
 
-        verify(ticketRepository).save(sampleTicket, sampleEventEntity);
+        List<Ticket> result = ticketService.getTicketsByPrice(100.0);
+
+        assertEquals(1, result.size());
+        assertEquals(ticket1, result.get(0));
+        verify(ticketRepository).findAll();
+    }
+
+    @Test
+    void getTicketsByEventId_shouldReturnTicketsForEvent() {
+        Ticket ticket1 = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(50.0)
+                .quantity(10)
+                .build();
+        Ticket ticket2 = Ticket.builder()
+                .id(2)
+                .eventId(1)
+                .ticketName("Standard")
+                .price(150.0)
+                .quantity(20)
+                .build();
+
+        when(ticketRepository.findByEventId(1)).thenReturn(List.of(ticket1, ticket2));
+
+        List<Ticket> result = ticketService.getTicketsByEventId(1);
+
+        assertEquals(2, result.size());
+        assertEquals(ticket1, result.get(0));
+        assertEquals(ticket2, result.get(1));
+        verify(ticketRepository).findByEventId(1);
+    }
+
+    @Test
+    void createTicket_shouldSaveTicket_whenValidEventExists() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .description("Great event")
+                .dateTime("2024-12-01T18:00")
+                .ticketQuantity(100)
+                .build();
+        EventEntity eventEntity = new EventEntity();
+
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(eventMapper.toEntity(event)).thenReturn(eventEntity);
+
+        ticketService.createTicket(ticket);
+
+        verify(ticketRepository).save(ticket, eventEntity);
     }
 
     @Test
     void createTicket_shouldThrowException_whenEventNotFound() {
-        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(null);
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(999)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        when(eventRepository.findById(ticket.getEventId())).thenReturn(null);
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketServiceImpl.createTicket(sampleTicket));
-
-        assertEquals("Event not found.", exception.getReason());
-        verify(ticketRepository, never()).save(any(Ticket.class), any(EventEntity.class));
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.createTicket(ticket));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(EVENT_NOT_FOUND_MESSAGE, exception.getReason());
+        verify(eventRepository).findById(ticket.getEventId());
     }
 
-//    @Test
-//    void purchaseTicket_shouldDecreaseEventAndTicketQuantity_whenEnoughTicketsAvailable() {
-//        when(ticketRepository.findEntityById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicketEntity));
-//        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(sampleEvent);
-//
-//        ticketServiceImpl.purchaseTicket(sampleTicket.getId(), 3);
-//
-//        assertEquals(7, sampleEvent.getTicketQuantity());
-//        assertEquals(2, sampleTicketEntity.getQuantity()); // Assuming the initial quantity was 5 and 3 were purchased
-//        verify(eventRepository).save(sampleEvent);
-//        verify(ticketRepository).saveEntity(sampleTicketEntity);
-//    }
-//
-//    @Test
-//    void purchaseTicket_shouldThrowException_whenNotEnoughTicketsAvailable() {
-//        when(ticketRepository.findEntityById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicketEntity));
-//        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(sampleEvent);
-//
-//        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketServiceImpl.purchaseTicket(sampleTicket.getId(), 15));
-//
-//        assertEquals("Not enough tickets available.", exception.getReason());
-//        verify(eventRepository, never()).save(sampleEvent);
-//        verify(ticketRepository, never()).saveEntity(any(TicketEntity.class));
-//    }
-//
-//    @Test
-//    void cancelTickets_shouldRestoreQuantities_whenPartialCancellation() {
-//        when(ticketRepository.findEntityById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicketEntity));
-//        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(sampleEvent);
-//
-//        PurchasedTicketEntity purchasedTicketEntity = new PurchasedTicketEntity(1, sampleTicketEntity, 5, LocalDateTime.now());
-//        when(purchasedTicketRepository.findByTicketId(sampleTicket.getId())).thenReturn(List.of(purchasedTicketEntity));
-//
-//        ticketServiceImpl.cancelTickets(sampleTicket.getId(), 3);
-//
-//        assertEquals(13, sampleEvent.getTicketQuantity()); // 10 initial + 3 canceled
-//        assertEquals(8, sampleTicketEntity.getQuantity()); // 5 initial + 3 canceled
-//        assertEquals(2, purchasedTicketEntity.getPurchaseQuantity()); // Reduced by 3
-//        verify(eventRepository).save(sampleEvent);
-//        verify(ticketRepository).saveEntity(sampleTicketEntity);
-//        verify(purchasedTicketRepository).save(purchasedTicketEntity);
-//    }
-//
-//    @Test
-//    void cancelTickets_shouldDeletePurchaseRecord_whenFullCancellation() {
-//        when(ticketRepository.findEntityById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicketEntity));
-//        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(sampleEvent);
-//
-//        PurchasedTicketEntity purchasedTicketEntity = new PurchasedTicketEntity(1, sampleTicketEntity, 5, LocalDateTime.now());
-//        when(purchasedTicketRepository.findByTicketId(sampleTicket.getId())).thenReturn(List.of(purchasedTicketEntity));
-//
-//        ticketServiceImpl.cancelTickets(sampleTicket.getId(), 5);
-//
-//        assertEquals(15, sampleEvent.getTicketQuantity()); // 10 initial + 5 fully canceled
-//        assertEquals(10, sampleTicketEntity.getQuantity()); // 5 initial + 5 fully canceled
-//        verify(eventRepository).save(sampleEvent);
-//        verify(ticketRepository).saveEntity(sampleTicketEntity);
-//        verify(purchasedTicketRepository).delete(purchasedTicketEntity);
-//    }
-//
-//    @Test
-//    void cancelTickets_shouldThrowException_whenCancelQuantityExceedsPurchase() {
-//        when(ticketRepository.findEntityById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicketEntity));
-//        when(eventRepository.findById(sampleTicket.getEventId())).thenReturn(sampleEvent);
-//
-//        PurchasedTicketEntity purchasedTicketEntity = new PurchasedTicketEntity(1, sampleTicketEntity, 5, LocalDateTime.now());
-//        when(purchasedTicketRepository.findByTicketId(sampleTicket.getId())).thenReturn(List.of(purchasedTicketEntity));
-//
-//        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-//                () -> ticketServiceImpl.cancelTickets(sampleTicket.getId(), 6));
-//
-//        assertEquals("Cannot cancel more tickets than purchased.", exception.getReason());
-//        verify(purchasedTicketRepository, never()).delete(purchasedTicketEntity);
-//        verify(purchasedTicketRepository, never()).save(any(PurchasedTicketEntity.class));
-//    }
+    @Test
+    void updateTicket_shouldUpdateTicket_whenValidEventExists() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .description("Great event")
+                .dateTime("2024-12-01T18:00")
+                .ticketQuantity(100)
+                .build();
+        EventEntity eventEntity = new EventEntity();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(eventMapper.toEntity(event)).thenReturn(eventEntity);
+
+        ticketService.updateTicket(1, ticket);
+
+        verify(ticketRepository).save(ticket, eventEntity);
+    }
 
     @Test
-    void deleteTicket_shouldRemoveTicket_whenTicketExists() {
-        when(ticketRepository.findById(sampleTicket.getId())).thenReturn(Optional.of(sampleTicket));
+    void updateTicket_shouldThrowException_whenEventNotFound() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(ticket.getEventId())).thenReturn(null);
 
-        ticketServiceImpl.deleteTicket(sampleTicket.getId());
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.updateTicket(1, ticket));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(EVENT_NOT_FOUND_MESSAGE, exception.getReason());
+    }
 
-        verify(ticketRepository).deleteById(sampleTicket.getId());
+    @Test
+    void deleteTicket_shouldDeleteTicket_whenTicketExists() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+
+        ticketService.deleteTicket(1);
+
+        verify(ticketRepository).deleteById(1);
     }
 
     @Test
     void deleteTicket_shouldThrowException_whenTicketNotFound() {
-        when(ticketRepository.findById(999)).thenReturn(Optional.empty());
+        when(ticketRepository.findById(1)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketServiceImpl.deleteTicket(999));
-
-        assertEquals("Ticket not found.", exception.getReason());
-        verify(ticketRepository, never()).deleteById(999);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.deleteTicket(1));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(TICKET_NOT_FOUND_MESSAGE, exception.getReason());
     }
 
     @Test
-    void getTicketsByPrice_shouldReturnTicketsBelowMaxPrice() {
-        when(ticketRepository.findAll()).thenReturn(List.of(sampleTicket));
+    void purchaseTicket_shouldDeductQuantityAndSave_whenValidRequest() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .description("Great event")
+                .dateTime("2024-12-01T18:00")
+                .ticketQuantity(100)
+                .build();
+        TicketEntity ticketEntity = TicketEntity.builder()
+                .id(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
 
-        List<Ticket> tickets = ticketServiceImpl.getTicketsByPrice(100.0);
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(ticketRepository.findEntityById(1)).thenReturn(Optional.of(ticketEntity));
 
-        assertEquals(1, tickets.size());
-        assertTrue(tickets.stream().allMatch(t -> t.getPrice() <= 100.0));
-        verify(ticketRepository).findAll();
+        ticketService.purchaseTicket(1, 5);
+
+        verify(eventRepository).save(event);
+        verify(ticketRepository).saveEntity(ticketEntity);
     }
+
+    @Test
+    void purchaseTicket_shouldThrowException_whenQuantityExceedsAvailable() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .quantity(2)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .ticketQuantity(1)
+                .build();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.purchaseTicket(1, 5));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Not enough tickets available.", exception.getReason());
+    }
+
+    @Test
+    void purchaseTicket_shouldThrowException_whenTicketEntityNotFound() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .ticketQuantity(5)
+                .build();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(ticketRepository.findEntityById(1)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.purchaseTicket(1, 2));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals("Ticket entity not found.", exception.getReason());
+    }
+
+    @Test
+    void cancelTickets_shouldRestoreQuantity_whenValidRequest() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .description("Great event")
+                .dateTime("2024-12-01T18:00")
+                .ticketQuantity(100)
+                .build();
+        TicketEntity ticketEntity = TicketEntity.builder()
+                .id(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        PurchasedTicketEntity purchasedTicketEntity = PurchasedTicketEntity.builder()
+                .id(1)
+                .ticket(ticketEntity)
+                .purchaseQuantity(5)
+                .purchaseDate(LocalDateTime.now())
+                .build();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(ticketRepository.findEntityById(1)).thenReturn(Optional.of(ticketEntity));
+        when(purchasedTicketRepository.findByTicketId(1)).thenReturn(List.of(purchasedTicketEntity));
+
+        ticketService.cancelTickets(1, 3);
+
+        assertEquals(2, purchasedTicketEntity.getPurchaseQuantity());
+        verify(eventRepository).save(event);
+        verify(ticketRepository).saveEntity(ticketEntity);
+    }
+
+    @Test
+    void cancelTickets_shouldThrowException_whenCancelQuantityExceedsPurchased() {
+        Ticket ticket = Ticket.builder()
+                .id(1)
+                .eventId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        Event event = Event.builder()
+                .id(1)
+                .ticketQuantity(100)
+                .build();
+        PurchasedTicketEntity purchasedTicketEntity = PurchasedTicketEntity.builder()
+                .id(1)
+                .purchaseQuantity(2)
+                .build();
+
+        when(ticketRepository.findById(1)).thenReturn(Optional.of(ticket));
+        when(eventRepository.findById(1)).thenReturn(event);
+        when(purchasedTicketRepository.findByTicketId(1)).thenReturn(List.of(purchasedTicketEntity));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> ticketService.cancelTickets(1, 5));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Cannot cancel more tickets than purchased.", exception.getReason());
+    }
+
+    @Test
+    void getPurchasedTickets_shouldReturnAllPurchasedTicketsConverted() {
+        TicketEntity ticketEntity = TicketEntity.builder()
+                .id(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(10)
+                .build();
+        PurchasedTicketEntity purchasedTicketEntity = PurchasedTicketEntity.builder()
+                .id(1)
+                .ticket(ticketEntity)
+                .purchaseQuantity(5)
+                .purchaseDate(LocalDateTime.now())
+                .build();
+        PurchasedTicketDTO purchasedTicketDTO = PurchasedTicketDTO.builder()
+                .ticketId(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(5)
+                .eventName("Concert")
+                .location("Amsterdam")
+                .build();
+
+        when(purchasedTicketRepository.findAll()).thenReturn(List.of(purchasedTicketEntity));
+        when(ticketMapper.toPurchasedTicketDTO(purchasedTicketEntity)).thenReturn(purchasedTicketDTO);
+
+        List<PurchasedTicketDTO> result = ticketService.getPurchasedTickets();
+
+        assertEquals(1, result.size());
+        assertEquals(purchasedTicketDTO, result.get(0));
+        verify(purchasedTicketRepository).findAll();
+        verify(ticketMapper).toPurchasedTicketDTO(purchasedTicketEntity);
+    }
+
 }

@@ -7,7 +7,6 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class EventMapper {
@@ -30,7 +29,7 @@ public class EventMapper {
         dto.setDescription(event.getDescription());
         dto.setDateTime(event.getDateTime());
         dto.setTicketQuantity(event.getTicketQuantity());
-        dto.setTickets(tickets.stream().map(ticketMapper::toDTO).collect(Collectors.toList()));
+        dto.setTickets(tickets.stream().map(ticketMapper::toDTO).toList());
         return dto;
     }
 

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -39,7 +38,7 @@ public class EventController {
                     List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
                     return eventMapper.toDTO(event, tickets);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @GetMapping("/{id}")

@@ -1,20 +1,19 @@
-package nl.fontys.s3.ticketwave_s3.Domain;
+package nl.fontys.s3.ticketwave_s3.Controller.DTOS;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Ticket {
-    private Integer id;
-    private Integer eventId;
+public class PurchasedTicketDTO {
+    private Integer ticketId;
     private String ticketName;
     private Double price;
     private Integer quantity;
+    private String eventName;
+    private String location;
 }
-
-
