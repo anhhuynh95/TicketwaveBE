@@ -44,17 +44,20 @@ public class TicketServiceImpl implements TicketService {
         this.ticketMapper = ticketMapper;
     }
 
+    /** Get all tickets. */
     @Override
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
+    /** Find ticket by ID. */
     @Override
     public Ticket getTicketById(Integer id) {
         return ticketRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE));
     }
 
+    /** Get tickets under specified max price. */
     @Override
     public List<Ticket> getTicketsByPrice(Double maxPrice) {
         return ticketRepository.findAll().stream()
@@ -62,6 +65,7 @@ public class TicketServiceImpl implements TicketService {
                 .toList();
     }
 
+    /** Create a new ticket for an existing event. */
     @Override
     public void createTicket(Ticket ticket) {
         Event event = eventRepository.findById(ticket.getEventId());
@@ -72,13 +76,14 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.save(ticket, eventEntity);
     }
 
+    /** Update an existing ticket. */
     @Override
     public void updateTicket(Integer id, Ticket ticket) {
         Ticket existingTicket = getTicketById(id);
         if (existingTicket == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, TICKET_NOT_FOUND_MESSAGE);
         }
-        ticket.setId(id);  // Ensure the ticket ID is set correctly
+        ticket.setId(id);
         Event event = eventRepository.findById(ticket.getEventId());
         if (event == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, EVENT_NOT_FOUND_MESSAGE);
@@ -87,6 +92,7 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.save(ticket, eventEntity);
     }
 
+    /** Delete a ticket by ID. */
     @Override
     public void deleteTicket(Integer id) {
         Ticket ticket = getTicketById(id);
@@ -96,6 +102,7 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.deleteById(id);
     }
 
+    /** Purchase a specified quantity of a ticket. */
     @Override
     @Transactional
     public void purchaseTicket(Integer ticketId, Integer quantity) {
@@ -133,7 +140,7 @@ public class TicketServiceImpl implements TicketService {
         purchasedTicketRepository.saveAndFlush(purchasedTicket);
     }
 
-
+    /** Get all purchased tickets. */
     @Override
     public List<PurchasedTicketDTO> getPurchasedTickets() {
         return purchasedTicketRepository.findAll().stream()
@@ -141,11 +148,13 @@ public class TicketServiceImpl implements TicketService {
                 .toList();
     }
 
+    /** Get tickets by event ID. */
     @Override
     public List<Ticket> getTicketsByEventId(Integer eventId) {
         return ticketRepository.findByEventId(eventId);
     }
 
+    /** Cancel specified quantity of purchased tickets. */
     @Override
     @Transactional
     public void cancelTickets(Integer ticketId, Integer cancelQuantity) {

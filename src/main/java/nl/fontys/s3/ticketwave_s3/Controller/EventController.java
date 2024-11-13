@@ -44,6 +44,7 @@ public class EventController {
                 .toList();
     }
 
+    /** Get details of a specific event by ID. */
     @GetMapping("/{id}")
     public EventDTO getEvent(@PathVariable Integer id) {
         try {

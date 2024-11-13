@@ -2,7 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Repository;
 
 import jakarta.persistence.EntityManager;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventDBRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.EventDBRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

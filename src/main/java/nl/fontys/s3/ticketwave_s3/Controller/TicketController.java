@@ -114,6 +114,7 @@ public class TicketController {
         ticketService.deleteTicket(id);
     }
 
+    /** Get all tickets for a specific event. */
     @GetMapping("/by-event/{eventId}")
     public List<TicketDTO> getTicketsByEventId(@PathVariable Integer eventId) {
         List<Ticket> tickets = ticketService.getTicketsByEventId(eventId);
@@ -122,6 +123,7 @@ public class TicketController {
                 .toList();
     }
 
+    /** Purchase a ticket by ticket ID and quantity. */
     @PutMapping("/{eventId}/{ticketId}/purchase")
     @ResponseStatus(HttpStatus.OK)
     public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
@@ -131,11 +133,13 @@ public class TicketController {
         ticketService.purchaseTicket(ticketId, quantity);
     }
 
+    /** Get all purchased tickets. */
     @GetMapping("/purchased")
     public List<PurchasedTicketDTO> getPurchasedTickets() {
         return ticketService.getPurchasedTickets();
     }
 
+    /** Cancel a specific quantity of purchased tickets. */
     @PutMapping("/{ticketId}/cancel")
     public ResponseEntity<Void> cancelTicket(@PathVariable Integer ticketId, @RequestBody Map<String, Integer> requestBody) {
        Integer cancelQuantity = requestBody.get("cancelQuantity");

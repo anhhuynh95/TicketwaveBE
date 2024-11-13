@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TicketMapper {
 
+    /** Convert Ticket domain object to TicketDTO. */
     public TicketDTO toDTO(Ticket ticket) {
         if (ticket == null) {
             return null;
@@ -23,6 +24,7 @@ public class TicketMapper {
         return ticketDTO;
     }
 
+    /** Convert TicketDTO to Ticket domain object. */
     public Ticket toDomain(TicketDTO ticketDTO) {
         if (ticketDTO == null) {
             return null;
@@ -35,6 +37,7 @@ public class TicketMapper {
         return ticket;
     }
 
+    /** Convert TicketEntity to Ticket domain object. */
     public Ticket toDomain(TicketEntity entity) {
         if (entity == null) return null;
         Ticket ticket = new Ticket();
@@ -46,6 +49,7 @@ public class TicketMapper {
         return ticket;
     }
 
+    /** Convert Ticket domain object to TicketEntity for database storage. */
     public TicketEntity toEntity(Ticket ticket, EventEntity eventEntity) {
         if (ticket == null) return null;
         TicketEntity entity = new TicketEntity();
@@ -57,6 +61,7 @@ public class TicketMapper {
         return entity;
     }
 
+    /** Convert PurchasedTicketEntity to PurchasedTicketDTO. */
     public PurchasedTicketDTO toPurchasedTicketDTO(PurchasedTicketEntity purchasedTicketEntity) {
         if (purchasedTicketEntity == null) return null;
         PurchasedTicketDTO purchasedTicketDTO = new PurchasedTicketDTO();

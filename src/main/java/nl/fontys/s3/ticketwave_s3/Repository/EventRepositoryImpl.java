@@ -2,7 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Repository;
 
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventDBRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.EventDBRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import org.springframework.stereotype.Repository;
@@ -21,7 +21,7 @@ public class EventRepositoryImpl implements EventRepository {
         this.eventMapper = eventMapper;
     }
 
-    /**Retrieve all events from the in-memory store*/
+    /**Retrieve all events */
     @Override
     public List<Event> findAll() {
         return eventDBRepository.findAll().stream()

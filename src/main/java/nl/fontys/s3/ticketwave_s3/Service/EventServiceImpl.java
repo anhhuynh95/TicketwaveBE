@@ -16,11 +16,13 @@ public class EventServiceImpl implements EventService {
         this.eventRepository = eventRepository;
     }
 
+    /** Retrieve all events. */
     @Override
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
     }
 
+    /** Find a specific event by ID. */
     @Override
     public Event getEventById(Integer id) {
         Event event = eventRepository.findById(id);
@@ -30,17 +32,20 @@ public class EventServiceImpl implements EventService {
         return event;
     }
 
+    /** Save a new event. */
     @Override
     public void createEvent(Event event) {
         eventRepository.save(event);
     }
 
+    /** Update an existing event by ID. */
     @Override
     public void updateEvent(Integer id, Event event) {
         event.setId(id);
         eventRepository.save(event);
     }
 
+    /** Delete an event by ID. */
     @Override
     public void deleteEvent(Integer id) {
         Event event = eventRepository.findById(id);
@@ -49,4 +54,5 @@ public class EventServiceImpl implements EventService {
         }
         eventRepository.deleteById(id);
     }
+
 }

@@ -4,9 +4,9 @@ import jakarta.persistence.EntityManager;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventDBRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.EventDBRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.PurchasedTicketRepository;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketDBRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.TicketDBRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +102,6 @@ class TicketRepositoryTest {
         assertNotNull(purchasedTicket.getId(), "Purchased Ticket ID should be auto-generated");
         assertEquals(5, purchasedTicket.getPurchaseQuantity(), "Purchase quantity should match");
 
-        // Additional assertions can be added as needed to verify data consistency
     }
 
 }
