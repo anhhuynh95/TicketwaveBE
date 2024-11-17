@@ -7,6 +7,7 @@ import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
+import nl.fontys.s3.ticketwave_s3.Service.CloudinaryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ class EventControllerTest {
 
     @MockBean
     private TicketService ticketService;
+
+    @MockBean
+    private CloudinaryService cloudinaryService;
 
     @MockBean
     private EventMapper eventMapper;
@@ -67,18 +71,22 @@ class EventControllerTest {
                 .price(50.0)
                 .quantity(100)
                 .build();
-
         List<Ticket> ticketsEvent1 = List.of(ticket1);
         List<Ticket> ticketsEvent2 = List.of(ticket2);
 
         when(eventService.getAllEvents()).thenReturn(events);
         when(ticketService.getTicketsByEventId(1)).thenReturn(ticketsEvent1);
         when(ticketService.getTicketsByEventId(2)).thenReturn(ticketsEvent2);
+
+        when(cloudinaryService.generateImageUrl("1")).thenReturn("https://res.cloudinary.com/du63rfliz/image/upload/events/1");
+        when(cloudinaryService.generateImageUrl("2")).thenReturn("https://res.cloudinary.com/du63rfliz/image/upload/events/2");
+
         when(eventMapper.toDTO(event1, ticketsEvent1)).thenReturn(
                 EventDTO.builder()
                         .id(1)
                         .name("Concert")
                         .location("Amsterdam")
+                        .imageUrl("https://res.cloudinary.com/du63rfliz/image/upload/events/1")
                         .tickets(List.of(TicketDTO.builder().id(1).ticketName("VIP").price(100.0).quantity(50).build()))
                         .build()
         );
@@ -87,6 +95,7 @@ class EventControllerTest {
                         .id(2)
                         .name("Festival")
                         .location("Rotterdam")
+                        .imageUrl("https://res.cloudinary.com/du63rfliz/image/upload/events/2")
                         .tickets(List.of(TicketDTO.builder().id(2).ticketName("Standard").price(50.0).quantity(100).build()))
                         .build()
         );
@@ -96,39 +105,43 @@ class EventControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""
-                    [
+            [
+                {
+                    "id": 1,
+                    "name": "Concert",
+                    "location": "Amsterdam",
+                    "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/1",
+                    "tickets": [
                         {
                             "id": 1,
-                            "name": "Concert",
-                            "location": "Amsterdam",
-                            "tickets": [
-                                {
-                                    "id": 1,
-                                    "ticketName": "VIP",
-                                    "price": 100.0,
-                                    "quantity": 50
-                                }
-                            ]
-                        },
-                        {
-                            "id": 2,
-                            "name": "Festival",
-                            "location": "Rotterdam",
-                            "tickets": [
-                                {
-                                    "id": 2,
-                                    "ticketName": "Standard",
-                                    "price": 50.0,
-                                    "quantity": 100
-                                }
-                            ]
+                            "ticketName": "VIP",
+                            "price": 100.0,
+                            "quantity": 50
                         }
                     ]
-                    """));
+                },
+                {
+                    "id": 2,
+                    "name": "Festival",
+                    "location": "Rotterdam",
+                    "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/2",
+                    "tickets": [
+                        {
+                            "id": 2,
+                            "ticketName": "Standard",
+                            "price": 50.0,
+                            "quantity": 100
+                        }
+                    ]
+                }
+            ]
+            """));
 
         verify(eventService).getAllEvents();
         verify(ticketService).getTicketsByEventId(1);
         verify(ticketService).getTicketsByEventId(2);
+        verify(cloudinaryService).generateImageUrl("1");
+        verify(cloudinaryService).generateImageUrl("2");
     }
 
     @Test
@@ -155,36 +168,41 @@ class EventControllerTest {
                 .id(eventId)
                 .name("Concert")
                 .location("Amsterdam")
+                .imageUrl("https://res.cloudinary.com/du63rfliz/image/upload/events/1")
                 .tickets(List.of(ticketDTO))
                 .build();
 
         when(eventService.getEventById(eventId)).thenReturn(event);
         when(ticketService.getTicketsByEventId(eventId)).thenReturn(List.of(ticket));
         when(eventMapper.toDTO(event, List.of(ticket))).thenReturn(eventDTO);
+        when(cloudinaryService.generateImageUrl(String.valueOf(eventId)))
+                .thenReturn("https://res.cloudinary.com/du63rfliz/image/upload/events/1");
 
         mockMvc.perform(get("/events/{id}", eventId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""
-                            {
-                                "id": 1,
-                                "name": "Concert",
-                                "location": "Amsterdam",
-                                "tickets": [
-                                    {
-                                        "id": 1,
-                                        "ticketName": "VIP",
-                                        "price": 100.0,
-                                        "quantity": 50
-                                    }
-                                ]
-                            }
-                        """));
+                {
+                    "id": 1,
+                    "name": "Concert",
+                    "location": "Amsterdam",
+                    "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/1",
+                    "tickets": [
+                        {
+                            "id": 1,
+                            "ticketName": "VIP",
+                            "price": 100.0,
+                            "quantity": 50
+                        }
+                    ]
+                }
+            """));
 
         verify(eventService).getEventById(eventId);
         verify(ticketService).getTicketsByEventId(eventId);
-        verifyNoMoreInteractions(ticketService);
+        verify(cloudinaryService).generateImageUrl(String.valueOf(eventId));
+        verifyNoMoreInteractions(ticketService, cloudinaryService);
     }
 
     @Test
@@ -195,22 +213,28 @@ class EventControllerTest {
                 .dateTime("2024-12-31T19:00:00")
                 .build();
 
-        Event event = new Event(1, "Concert", "Amsterdam", "2024-12-31T19:00:00", null, null);
+        Event event = Event.builder()
+                .id(1)
+                .name("Concert")
+                .location("Amsterdam")
+                .dateTime("2024-12-31T19:00:00")
+                .build();
 
         when(eventMapper.toDomain(eventDTO)).thenReturn(event);
 
         mockMvc.perform(post("/events")
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
-                            {
-                                "name": "Concert",
-                                "location": "Amsterdam",
-                                "dateTime": "2024-12-31T19:00:00"
-                            }
-                            """))
+                        {
+                            "name": "Concert",
+                            "location": "Amsterdam",
+                            "dateTime": "2024-12-31T19:00:00"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
+        verify(eventMapper).toDomain(eventDTO);
         verify(eventService).createEvent(event);
     }
 
@@ -224,7 +248,7 @@ class EventControllerTest {
                             "location": "",
                             "dateTime": ""
                         }
-                        """))
+                    """))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
@@ -234,9 +258,9 @@ class EventControllerTest {
                     "location": "must not be blank",
                     "dateTime": "must not be blank"
                 }
-                """));
+            """));
 
-        verifyNoInteractions(eventService);
+        verifyNoInteractions(eventService, eventMapper);
     }
 
     @Test
@@ -260,15 +284,16 @@ class EventControllerTest {
         mockMvc.perform(put("/events/{id}", eventId)
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
-                {
-                    "name": "Updated Concert",
-                    "location": "Updated Location",
-                    "dateTime": "2024-12-31T20:00:00"
-                }
-            """))
+                        {
+                            "name": "Updated Concert",
+                            "location": "Updated Location",
+                            "dateTime": "2024-12-31T20:00:00"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
+        verify(eventMapper).toDomain(eventDTO);
         verify(eventService).updateEvent(eventId, event);
     }
 

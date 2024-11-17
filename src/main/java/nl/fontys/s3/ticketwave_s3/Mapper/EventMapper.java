@@ -30,6 +30,8 @@ public class EventMapper {
         dto.setDateTime(event.getDateTime());
         dto.setTicketQuantity(event.getTicketQuantity());
         dto.setTickets(tickets.stream().map(ticketMapper::toDTO).toList());
+        String cloudinaryBaseUrl = "https://res.cloudinary.com/du63rfliz/image/upload/events/";
+        dto.setImageUrl(cloudinaryBaseUrl + event.getId());
         return dto;
     }
 
