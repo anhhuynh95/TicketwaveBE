@@ -23,4 +23,5 @@ public class EventDTO {
     private String dateTime;
     private Integer ticketQuantity;
     private List<TicketDTO> tickets;
+    private String imageUrl;
 }

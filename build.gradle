@@ -23,6 +23,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -34,6 +35,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql:10.4.0'
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation('com.cloudinary:cloudinary-http44:1.26.0') {
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
