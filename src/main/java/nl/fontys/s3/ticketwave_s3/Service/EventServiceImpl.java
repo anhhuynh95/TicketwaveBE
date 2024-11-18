@@ -3,9 +3,9 @@ package nl.fontys.s3.ticketwave_s3.Service;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -18,8 +18,8 @@ public class EventServiceImpl implements EventService {
 
     /** Retrieve all events. */
     @Override
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    public Page<Event> getAllEvents(Pageable pageable) {
+        return eventRepository.findAll(pageable); // Pass pageable to repository
     }
 
     /** Find a specific event by ID. */

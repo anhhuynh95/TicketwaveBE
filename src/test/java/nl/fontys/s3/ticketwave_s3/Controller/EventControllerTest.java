@@ -13,6 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,7 +48,7 @@ class EventControllerTest {
     private EventMapper eventMapper;
 
     @Test
-    void getAllEvents_shouldReturn200ResponseWithEventsArray() throws Exception {
+    void getAllEvents_shouldReturn200ResponseWithPaginatedEventsArray() throws Exception {
         Event event1 = Event.builder()
                 .id(1)
                 .name("Concert")
@@ -74,7 +78,10 @@ class EventControllerTest {
         List<Ticket> ticketsEvent1 = List.of(ticket1);
         List<Ticket> ticketsEvent2 = List.of(ticket2);
 
-        when(eventService.getAllEvents()).thenReturn(events);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Event> eventPage = new PageImpl<>(events, pageable, events.size());
+
+        when(eventService.getAllEvents(any(Pageable.class))).thenReturn(eventPage);
         when(ticketService.getTicketsByEventId(1)).thenReturn(ticketsEvent1);
         when(ticketService.getTicketsByEventId(2)).thenReturn(ticketsEvent2);
 
@@ -100,44 +107,54 @@ class EventControllerTest {
                         .build()
         );
 
-        mockMvc.perform(get("/events"))
+        mockMvc.perform(get("/events")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""
-            [
-                {
-                    "id": 1,
-                    "name": "Concert",
-                    "location": "Amsterdam",
-                    "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/1",
-                    "tickets": [
-                        {
-                            "id": 1,
-                            "ticketName": "VIP",
-                            "price": 100.0,
-                            "quantity": 50
-                        }
-                    ]
+            {
+                "content": [
+                    {
+                        "id": 1,
+                        "name": "Concert",
+                        "location": "Amsterdam",
+                        "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/1",
+                        "tickets": [
+                            {
+                                "id": 1,
+                                "ticketName": "VIP",
+                                "price": 100.0,
+                                "quantity": 50
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "name": "Festival",
+                        "location": "Rotterdam",
+                        "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/2",
+                        "tickets": [
+                            {
+                                "id": 2,
+                                "ticketName": "Standard",
+                                "price": 50.0,
+                                "quantity": 100
+                            }
+                        ]
+                    }
+                ],
+                "pageable": {
+                    "pageNumber": 0,
+                    "pageSize": 10
                 },
-                {
-                    "id": 2,
-                    "name": "Festival",
-                    "location": "Rotterdam",
-                    "imageUrl": "https://res.cloudinary.com/du63rfliz/image/upload/events/2",
-                    "tickets": [
-                        {
-                            "id": 2,
-                            "ticketName": "Standard",
-                            "price": 50.0,
-                            "quantity": 100
-                        }
-                    ]
-                }
-            ]
+                "totalElements": 2,
+                "totalPages": 1
+            }
             """));
 
-        verify(eventService).getAllEvents();
+        verify(eventService).getAllEvents(any(Pageable.class));
         verify(ticketService).getTicketsByEventId(1);
         verify(ticketService).getTicketsByEventId(2);
         verify(cloudinaryService).generateImageUrl("1");

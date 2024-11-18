@@ -7,6 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -23,25 +27,21 @@ class EventServiceImplTest {
     private EventServiceImpl eventService;
 
     @Test
-    void getAllEvents_shouldReturnAllEvents() {
+    void getAllEvents_shouldReturnPaginatedEvents() {
         List<Event> events = List.of(
-                Event.builder()
-                        .id(1)
-                        .name("Concert")
-                        .location("Amsterdam")
-                        .build(),
-                Event.builder()
-                        .id(2)
-                        .name("Festival")
-                        .location("Rotterdam")
-                        .build()
+                Event.builder().id(1).name("Concert").location("Amsterdam").build(),
+                Event.builder().id(2).name("Festival").location("Rotterdam").build()
         );
-        when(eventRepository.findAll()).thenReturn(events);
 
-        List<Event> result = eventService.getAllEvents();
+        Pageable pageable = PageRequest.of(0, 10); // Page 0 with 10 items per page
+        Page<Event> eventPage = new PageImpl<>(events, pageable, events.size());
+        when(eventRepository.findAll(pageable)).thenReturn(eventPage);
 
-        assertEquals(events, result);
-        verify(eventRepository).findAll();
+        Page<Event> result = eventService.getAllEvents(pageable);
+
+        assertEquals(events, result.getContent());
+        assertEquals(2, result.getTotalElements());
+        verify(eventRepository).findAll(pageable);
     }
 
     @Test

@@ -8,6 +8,9 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Service.CloudinaryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -41,17 +44,16 @@ public class EventController {
 
     /**Retrieve all events.*/
     @GetMapping
-    public List<EventDTO> getAllEvents() {
-        List<Event> events = eventService.getAllEvents();
-        return events.stream()
+    public Page<EventDTO> getAllEvents(@RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return eventService.getAllEvents(pageable)
                 .map(event -> {
                     List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
                     EventDTO dto = eventMapper.toDTO(event, tickets);
-                    // Dynamically add the Cloudinary image URL
                     dto.setImageUrl(cloudinaryService.generateImageUrl(String.valueOf(event.getId())));
                     return dto;
-                })
-                .toList();
+                });
     }
 
     /** Get details of a specific event by ID. */

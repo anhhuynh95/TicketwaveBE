@@ -5,9 +5,9 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.EventDBRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public class EventRepositoryImpl implements EventRepository {
@@ -21,12 +21,10 @@ public class EventRepositoryImpl implements EventRepository {
         this.eventMapper = eventMapper;
     }
 
-    /**Retrieve all events */
     @Override
-    public List<Event> findAll() {
-        return eventDBRepository.findAll().stream()
-                .map(eventMapper::toDomain)
-                .toList();
+    public Page<Event> findAll(Pageable pageable) {
+        return eventDBRepository.findAll(pageable)
+                .map(eventMapper::toDomain); // Map entities to domain objects
     }
 
     /**Find an event by its ID.*/
