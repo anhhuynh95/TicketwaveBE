@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(TicketController.class)
@@ -41,6 +43,7 @@ class TicketControllerTest {
     private EventService eventService;
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void getAllTickets_shouldReturn200AndListOfTickets() throws Exception {
         Ticket ticket = Ticket.builder()
                 .id(1)
@@ -67,6 +70,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void getAllTickets_shouldReturn404WhenNoTicketsAvailable() throws Exception {
         when(ticketService.getAllTickets()).thenReturn(List.of());
 
@@ -78,6 +82,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void getTicket_shouldReturn200WhenTicketExists() throws Exception {
         int ticketId = 1;
         Ticket ticket = Ticket.builder()
@@ -105,6 +110,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void getTicket_shouldReturn400WhenIdIsInvalid() throws Exception {
         int invalidId = -1;
 
@@ -115,6 +121,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void getTicketsByEventId_shouldReturn200AndListOfTickets() throws Exception {
         int eventId = 1;
         Ticket ticket1 = Ticket.builder()
@@ -175,6 +182,7 @@ class TicketControllerTest {
 
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void createTicket_shouldReturn201WhenRequestIsValid() throws Exception {
         int eventId = 1;
         TicketDTO ticketDTO = TicketDTO.builder()
@@ -206,7 +214,8 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                         {"ticketName": "VIP", "price": 100.0, "quantity": 50}
-                        """))
+                        """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -214,19 +223,22 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void createTicket_shouldReturn400WhenQuantityIsNull() throws Exception {
         mockMvc.perform(post("/tickets/create")
                         .param("eventId", "1")
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                         {"ticketName": "VIP", "price": 100.0}
-                        """))
+                        """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Quantity must be a positive integer."));
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void createTicket_shouldReturn400WhenExceedsAvailableQuantity() throws Exception {
         int eventId = 1;
         Event event = Event.builder()
@@ -249,13 +261,15 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                         {"ticketName": "VIP", "price": 100.0, "quantity": 30}
-                        """))
+                        """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Exceeds available ticket quantity."));
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void updateTicket_shouldReturn204WhenTicketExists() throws Exception {
         int ticketId = 1;
         TicketDTO ticketDTO = TicketDTO.builder()
@@ -275,7 +289,8 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                                 {"ticketName": "VIP", "price": 120.0}
-                                """))
+                                """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -283,6 +298,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void updateTicket_shouldReturn400WhenIdIsInvalid() throws Exception {
         int invalidId = -1;
 
@@ -290,13 +306,15 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                                 {"ticketName": "VIP", "price": 120.0}
-                                """))
+                                """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("ID must be a positive integer."));
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void deleteTicket_shouldReturn204WhenTicketExists() throws Exception {
         int ticketId = 1;
         Ticket ticket = Ticket.builder()
@@ -305,7 +323,8 @@ class TicketControllerTest {
 
         when(ticketService.getTicketById(ticketId)).thenReturn(ticket);
 
-        mockMvc.perform(delete("/tickets/{id}", ticketId))
+        mockMvc.perform(delete("/tickets/{id}", ticketId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -313,12 +332,14 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void deleteTicket_shouldReturn404WhenTicketDoesNotExist() throws Exception {
         int nonExistentId = 999;
 
         when(ticketService.getTicketById(nonExistentId)).thenReturn(null);
 
-        mockMvc.perform(delete("/tickets/{id}", nonExistentId))
+        mockMvc.perform(delete("/tickets/{id}", nonExistentId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Ticket not found."));
@@ -327,26 +348,30 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void purchaseTicket_shouldReturn200WhenRequestValid() throws Exception {
         int eventId = 1;
         int ticketId = 1;
         int quantity = 2;
 
         mockMvc.perform(put("/tickets/{eventId}/{ticketId}/purchase", eventId, ticketId)
-                        .param("quantity", String.valueOf(quantity)))
+                        .param("quantity", String.valueOf(quantity))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         verify(ticketService).purchaseTicket(ticketId, quantity);
     }
     @Test
+    @WithMockUser(username = "user")
     void purchaseTicket_shouldReturn400WhenQuantityIsInvalid() throws Exception {
         int eventId = 1;
         int ticketId = 1;
         int invalidQuantity = -1;
 
         mockMvc.perform(put("/tickets/{eventId}/{ticketId}/purchase", eventId, ticketId)
-                        .param("quantity", String.valueOf(invalidQuantity)))
+                        .param("quantity", String.valueOf(invalidQuantity))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -354,6 +379,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void purchaseTicket_shouldReturn404WhenTicketNotFound() throws Exception {
         int eventId = 1;
         int nonExistingTicketId = 999;
@@ -363,13 +389,15 @@ class TicketControllerTest {
                 .when(ticketService).purchaseTicket(nonExistingTicketId, quantity);
 
         mockMvc.perform(put("/tickets/{eventId}/{ticketId}/purchase", eventId, nonExistingTicketId)
-                        .param("quantity", String.valueOf(quantity)))
+                        .param("quantity", String.valueOf(quantity))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
         verify(ticketService).purchaseTicket(nonExistingTicketId, quantity);
     }
     @Test
+    @WithMockUser(username = "user")
     void cancelTicket_shouldReturn204WhenRequestIsValid() throws Exception {
         int ticketId = 1;
         int cancelQuantity = 1;
@@ -378,7 +406,8 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                                 {"cancelQuantity": 1}
-                                """))
+                                """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -386,6 +415,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void cancelTicket_shouldReturn400WhenCancelQuantityIsInvalid() throws Exception {
         int ticketId = 1;
 
@@ -393,7 +423,8 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                             {"cancelQuantity": 0}
-                            """))
+                            """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -401,6 +432,7 @@ class TicketControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void cancelTicket_shouldReturn404WhenTicketNotFound() throws Exception {
         int nonExistingTicketId = 999;
         int cancelQuantity = 1;
@@ -412,7 +444,8 @@ class TicketControllerTest {
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
                             {"cancelQuantity": 1}
-                            """))
+                            """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 

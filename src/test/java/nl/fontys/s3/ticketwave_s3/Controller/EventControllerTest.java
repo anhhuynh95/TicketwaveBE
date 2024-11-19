@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -52,6 +54,7 @@ class EventControllerTest {
     private EventMapper eventMapper;
 
     @Test
+    @WithMockUser(username = "user")
     void getAllEvents_shouldReturn200ResponseWithPaginatedEventsArray() throws Exception {
         Event event1 = Event.builder()
                 .id(1)
@@ -113,7 +116,8 @@ class EventControllerTest {
 
         mockMvc.perform(get("/events")
                         .param("page", "0")
-                        .param("size", "10"))
+                        .param("size", "10")
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
@@ -166,6 +170,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void getEvent_shouldReturn200ResponseWithEvent() throws Exception {
         int eventId = 1;
         Event event = Event.builder()
@@ -199,7 +204,8 @@ class EventControllerTest {
         when(cloudinaryService.generateImageUrl(String.valueOf(eventId)))
                 .thenReturn("https://res.cloudinary.com/du63rfliz/image/upload/events/1");
 
-        mockMvc.perform(get("/events/{id}", eventId))
+        mockMvc.perform(get("/events/{id}", eventId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
@@ -227,6 +233,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void createEvent_shouldCreateAndReturn201_WhenRequestValid() throws Exception {
         EventDTO eventDTO = EventDTO.builder()
                 .name("Concert")
@@ -251,7 +258,8 @@ class EventControllerTest {
                             "location": "Amsterdam",
                             "dateTime": "2024-12-31T19:00:00"
                         }
-                    """))
+                    """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -260,6 +268,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void createEvent_shouldNotCreateAndReturn400_WhenRequestInvalid() throws Exception {
         mockMvc.perform(post("/events")
                         .contentType(APPLICATION_JSON_VALUE)
@@ -269,7 +278,8 @@ class EventControllerTest {
                             "location": "",
                             "dateTime": ""
                         }
-                    """))
+                    """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string("Content-Type", APPLICATION_JSON_VALUE))
@@ -285,6 +295,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void updateEvent_shouldUpdateEventAndReturn204() throws Exception {
         int eventId = 1;
         EventDTO eventDTO = EventDTO.builder()
@@ -310,7 +321,8 @@ class EventControllerTest {
                             "location": "Updated Location",
                             "dateTime": "2024-12-31T20:00:00"
                         }
-                    """))
+                    """)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -319,10 +331,12 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void deleteEvent_shouldDeleteEventAndReturn204() throws Exception {
         int eventId = 1;
 
-        mockMvc.perform(delete("/events/{id}", eventId))
+        mockMvc.perform(delete("/events/{id}", eventId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -330,11 +344,13 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void deleteEvent_shouldReturn404WhenEventNotFound() throws Exception {
         int eventId = 999;
         doThrow(new RuntimeException("Event not found")).when(eventService).deleteEvent(eventId);
 
-        mockMvc.perform(delete("/events/{id}", eventId))
+        mockMvc.perform(delete("/events/{id}", eventId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Event not found"));
@@ -343,6 +359,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void uploadEventImage_shouldReturn200AndImageUrl_whenValidRequest() throws Exception {
         int eventId = 1;
         String expectedImageUrl = "https://res.cloudinary.com/du63rfliz/image/upload/events/1";
@@ -363,7 +380,8 @@ class EventControllerTest {
                 .thenReturn(expectedImageUrl);
 
         mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId)
-                        .file(mockImage))
+                        .file(mockImage)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedImageUrl));
@@ -376,10 +394,12 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void uploadEventImage_shouldReturn400_whenNoImageProvided() throws Exception {
         int eventId = 1;
 
-        mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId))
+        mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -387,6 +407,7 @@ class EventControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void uploadEventImage_shouldReturn400_whenInvalidFileTypeProvided() throws Exception {
         int eventId = 1;
         MockMultipartFile invalidFile = new MockMultipartFile(
@@ -397,7 +418,8 @@ class EventControllerTest {
         );
 
         mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId)
-                        .file(invalidFile))
+                        .file(invalidFile)
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
