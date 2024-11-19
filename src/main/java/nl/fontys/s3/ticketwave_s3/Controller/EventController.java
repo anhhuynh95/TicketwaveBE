@@ -8,6 +8,7 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Service.CloudinaryService;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Set;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -99,20 +107,59 @@ public class EventController {
         }
     }
 
-    /**Upload images to Cloudinary*/
+    /** Upload images to Cloudinary */
     @PostMapping("/{eventId}/uploadImage")
-    public String uploadEventImage(@PathVariable String eventId, @RequestParam("image") MultipartFile imageFile) throws IOException {
-        // Save the uploaded file to a temporary location
-        File file = File.createTempFile("temp", imageFile.getOriginalFilename());
-        imageFile.transferTo(file);
+    public String uploadEventImage(
+            @PathVariable String eventId,
+            @RequestParam("image") MultipartFile imageFile) throws IOException {
 
-        // Upload to Cloudinary and get the image URL
-        String imageUrl = cloudinaryService.uploadEventImage(file, eventId);
+        // Validate file content and type
+        if (imageFile.isEmpty() || !isValidImage(imageFile)) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
 
-        // Clean up temporary file
-        file.delete();
+        // Create a dedicated temporary directory
+        Path tempDir = cloudinaryService.createSecureTempDirectory();
 
-        // Return the URL to the uploaded image
-        return imageUrl;
+        Path tempFilePath;
+
+        // Create a secure temporary file within the dedicated directory
+        if (SystemUtils.IS_OS_UNIX) {
+            // For Unix-like systems, set restrictive permissions
+            FileAttribute<Set<PosixFilePermission>> attrs = PosixFilePermissions.asFileAttribute(
+                    PosixFilePermissions.fromString("rw-------")
+            );
+            tempFilePath = Files.createTempFile(tempDir, "temp-", imageFile.getOriginalFilename(), attrs);
+        } else {
+            // For non-Unix systems, set explicit permissions
+            tempFilePath = Files.createTempFile(tempDir, "temp-", imageFile.getOriginalFilename());
+            File tempFile = tempFilePath.toFile();
+            boolean readable = tempFile.setReadable(true, true);
+            boolean writable = tempFile.setWritable(true, true);
+            boolean executable = tempFile.setExecutable(false, true);
+
+            if (!readable || !writable || executable) {
+                throw new IOException("Failed to set secure permissions on temporary file.");
+            }
+        }
+
+        try {
+            // Save the uploaded file securely to the temporary location
+            Files.copy(imageFile.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Upload to Cloudinary and return the image URL
+            return cloudinaryService.uploadEventImage(tempFilePath.toFile(), eventId);
+
+        } finally {
+            // Clean up: delete the temporary file
+            Files.deleteIfExists(tempFilePath);
+            Files.deleteIfExists(tempDir); // Optionally delete the directory if empty
+        }
+    }
+
+     /** Validate image file content type */
+    private boolean isValidImage(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
     }
 }

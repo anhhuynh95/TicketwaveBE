@@ -70,9 +70,20 @@ public class TicketController {
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
     public void createTicket(@RequestParam Integer eventId, @RequestBody TicketDTO input) {
+        if (input.getQuantity() == null || input.getQuantity() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be a positive integer.");
+        }
+
         Event event = eventService.getEventById(eventId);
         if (event == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+        }
+
+        List<Ticket> existingTickets = ticketService.getTicketsByEventId(eventId);
+        int usedQuantity = existingTickets.stream().mapToInt(Ticket::getQuantity).sum();
+
+        if (usedQuantity + input.getQuantity() > event.getTicketQuantity()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exceeds available ticket quantity.");
         }
 
         Ticket ticket = ticketMapper.toDomain(input);

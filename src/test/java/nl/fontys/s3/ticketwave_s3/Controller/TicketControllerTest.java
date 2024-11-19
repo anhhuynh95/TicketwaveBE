@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -116,30 +115,98 @@ class TicketControllerTest {
     }
 
     @Test
+    void getTicketsByEventId_shouldReturn200AndListOfTickets() throws Exception {
+        int eventId = 1;
+        Ticket ticket1 = Ticket.builder()
+                .id(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(50)
+                .build();
+        Ticket ticket2 = Ticket.builder()
+                .id(2)
+                .ticketName("Standard")
+                .price(50.0)
+                .quantity(100)
+                .build();
+        List<Ticket> tickets = List.of(ticket1, ticket2);
+
+        TicketDTO ticketDTO1 = TicketDTO.builder()
+                .id(1)
+                .ticketName("VIP")
+                .price(100.0)
+                .quantity(50)
+                .build();
+        TicketDTO ticketDTO2 = TicketDTO.builder()
+                .id(2)
+                .ticketName("Standard")
+                .price(50.0)
+                .quantity(100)
+                .build();
+
+        when(ticketService.getTicketsByEventId(eventId)).thenReturn(tickets);
+        when(ticketMapper.toDTO(ticket1)).thenReturn(ticketDTO1);
+        when(ticketMapper.toDTO(ticket2)).thenReturn(ticketDTO2);
+
+        mockMvc.perform(get("/tickets/by-event/{eventId}", eventId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                    [
+                        {
+                            "id": 1,
+                            "ticketName": "VIP",
+                            "price": 100.0,
+                            "quantity": 50
+                        },
+                        {
+                            "id": 2,
+                            "ticketName": "Standard",
+                            "price": 50.0,
+                            "quantity": 100
+                        }
+                    ]
+                """));
+
+        verify(ticketService).getTicketsByEventId(eventId);
+        verify(ticketMapper).toDTO(ticket1);
+        verify(ticketMapper).toDTO(ticket2);
+    }
+
+
+    @Test
     void createTicket_shouldReturn201WhenRequestIsValid() throws Exception {
         int eventId = 1;
         TicketDTO ticketDTO = TicketDTO.builder()
                 .ticketName("VIP")
                 .price(100.0)
+                .quantity(50)
                 .build();
         Ticket ticket = Ticket.builder()
                 .ticketName("VIP")
                 .price(100.0)
+                .quantity(50)
                 .build();
         Event event = Event.builder()
                 .id(eventId)
                 .name("Concert")
+                .ticketQuantity(100)
                 .build();
 
+        List<Ticket> existingTickets = List.of(
+                Ticket.builder().quantity(20).build()
+        );
+
         when(eventService.getEventById(eventId)).thenReturn(event);
+        when(ticketService.getTicketsByEventId(eventId)).thenReturn(existingTickets);
         when(ticketMapper.toDomain(ticketDTO)).thenReturn(ticket);
 
         mockMvc.perform(post("/tickets/create")
                         .param("eventId", String.valueOf(eventId))
                         .contentType(APPLICATION_JSON_VALUE)
                         .content("""
-                                {"ticketName": "VIP", "price": 100.0}
-                                """))
+                        {"ticketName": "VIP", "price": 100.0, "quantity": 50}
+                        """))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -147,17 +214,45 @@ class TicketControllerTest {
     }
 
     @Test
-    void createTicket_shouldReturn400WhenEventIdIsMissing() throws Exception {
+    void createTicket_shouldReturn400WhenQuantityIsNull() throws Exception {
         mockMvc.perform(post("/tickets/create")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("eventId", "1")
+                        .contentType(APPLICATION_JSON_VALUE)
                         .content("""
-                {
-                    "ticketName": "",
-                    "price": 0.0
-                }
-                """))
+                        {"ticketName": "VIP", "price": 100.0}
+                        """))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Quantity must be a positive integer."));
+    }
+
+    @Test
+    void createTicket_shouldReturn400WhenExceedsAvailableQuantity() throws Exception {
+        int eventId = 1;
+        Event event = Event.builder()
+                .id(eventId)
+                .name("Concert")
+                .ticketQuantity(100)
+                .build();
+
+        List<Ticket> existingTickets = List.of(
+                Ticket.builder()
+                        .quantity(80)
+                        .build()
+        );
+
+        when(eventService.getEventById(eventId)).thenReturn(event);
+        when(ticketService.getTicketsByEventId(eventId)).thenReturn(existingTickets);
+
+        mockMvc.perform(post("/tickets/create")
+                        .param("eventId", String.valueOf(eventId))
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .content("""
+                        {"ticketName": "VIP", "price": 100.0, "quantity": 30}
+                        """))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Exceeds available ticket quantity."));
     }
 
     @Test

@@ -17,9 +17,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -337,4 +341,67 @@ class EventControllerTest {
 
         verify(eventService).deleteEvent(eventId);
     }
+
+    @Test
+    void uploadEventImage_shouldReturn200AndImageUrl_whenValidRequest() throws Exception {
+        int eventId = 1;
+        String expectedImageUrl = "https://res.cloudinary.com/du63rfliz/image/upload/events/1";
+
+        MockMultipartFile mockImage = new MockMultipartFile(
+                "image",
+                "test-image.jpg",
+                "image/jpeg",
+                "Sample image content".getBytes()
+        );
+
+        Path mockTempDir = Files.createTempDirectory("mock-secure-temp-dir");
+        Path mockTempFile = mockTempDir.resolve("mock-temp-file.jpg");
+
+        // Mock the directory creation and file behavior
+        when(cloudinaryService.createSecureTempDirectory()).thenReturn(mockTempDir);
+        when(cloudinaryService.uploadEventImage(any(File.class), eq(String.valueOf(eventId))))
+                .thenReturn(expectedImageUrl);
+
+        mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId)
+                        .file(mockImage))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedImageUrl));
+
+        verify(cloudinaryService).uploadEventImage(any(File.class), eq(String.valueOf(eventId)));
+
+        // Cleanup
+        Files.deleteIfExists(mockTempFile);
+        Files.deleteIfExists(mockTempDir);
+    }
+
+    @Test
+    void uploadEventImage_shouldReturn400_whenNoImageProvided() throws Exception {
+        int eventId = 1;
+
+        mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(cloudinaryService);
+    }
+
+    @Test
+    void uploadEventImage_shouldReturn400_whenInvalidFileTypeProvided() throws Exception {
+        int eventId = 1;
+        MockMultipartFile invalidFile = new MockMultipartFile(
+                "image",
+                "test.txt",
+                "text/plain",
+                "Invalid file content".getBytes()
+        );
+
+        mockMvc.perform(multipart("/events/{eventId}/uploadImage", eventId)
+                        .file(invalidFile))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(cloudinaryService);
+    }
+
 }

@@ -1,4 +1,4 @@
-package nl.fontys.s3.ticketwave_s3.Configuration.Exceptionhandler;
+package nl.fontys.s3.ticketwave_s3.Configuration.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
