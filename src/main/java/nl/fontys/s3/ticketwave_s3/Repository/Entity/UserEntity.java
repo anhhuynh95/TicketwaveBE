@@ -2,13 +2,16 @@ package nl.fontys.s3.ticketwave_s3.Repository.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import nl.fontys.s3.ticketwave_s3.Domain.UserRole;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user")
+@Table (name = "useraccount")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,9 +36,11 @@ public class UserEntity {
 
     @NotNull
     @Column
+    @Builder.Default
     private boolean active = true;
 
     @NotNull
     @Column
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
