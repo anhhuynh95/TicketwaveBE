@@ -43,4 +43,5 @@ public class UserEntity {
     @Column
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
 }

@@ -2,9 +2,12 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.UserDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.User;
+import nl.fontys.s3.ticketwave_s3.Domain.UserRole;
 import nl.fontys.s3.ticketwave_s3.Mapper.UserMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.UserRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.UserDBRepository;
+import nl.fontys.s3.ticketwave_s3.Service.Exception.InvalidCredentialsException;
+import nl.fontys.s3.ticketwave_s3.Configuration.Security.Token.AccessTokenEncoder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,33 +24,31 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private UserMapper userMapper;
+    private UserDBRepository userRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AccessTokenEncoder accessTokenEncoder;
+
+    @Mock
+    private UserMapper userMapper;
 
     @InjectMocks
     private UserServiceImpl userService;
 
     @Test
     void registerUser_shouldRegisterUserSuccessfully() {
-        UserDTO userDTO = UserDTO.builder()
-                .username("testuser")
-                .password("password")
-                .build();
+        UserDTO userDTO = UserDTO.builder().username("testuser").password("password").build();
 
         UserEntity userEntity = UserEntity.builder()
                 .username("testuser")
                 .password("encodedPassword")
+                .role(UserRole.USER)
                 .build();
 
-        User expectedUser = User.builder()
-                .username("testuser")
-                .password("encodedPassword")
-                .build();
+        User expectedUser = User.builder().username("testuser").password("encodedPassword").role(UserRole.USER).build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
@@ -65,18 +66,11 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_shouldThrowExceptionWhenUsernameExists() {
-        UserDTO userDTO = UserDTO.builder()
-                .username("testuser")
-                .password("password")
-                .build();
+        UserDTO userDTO = UserDTO.builder().username("testuser").password("password").build();
 
-        when(userRepository.findByUsername("testuser"))
-                .thenReturn(Optional.of(User.builder().username("testuser").build()));
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(new UserEntity()));
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> userService.registerUser(userDTO)
-        );
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.registerUser(userDTO));
 
         assertEquals("Username is already taken", exception.getMessage());
         verify(userRepository).findByUsername("testuser");
@@ -85,24 +79,47 @@ class UserServiceImplTest {
     }
 
     @Test
-    void registerUser_shouldEncodePasswordBeforeSaving() {
-        UserDTO userDTO = UserDTO.builder()
-                .username("secureuser")
-                .password("securepassword")
-                .build();
+    void login_shouldReturnAccessTokenWhenCredentialsAreValid() {
+        String username = "testuser";
+        String password = "password";
 
         UserEntity userEntity = UserEntity.builder()
-                .username("secureuser")
-                .password("encodedSecurePassword")
+                .id(1)
+                .username(username)
+                .password("encodedPassword")
+                .role(UserRole.MANAGER)
                 .build();
 
-        when(userRepository.findByUsername("secureuser")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("securepassword")).thenReturn("encodedSecurePassword");
-        when(userMapper.toEntity(userDTO)).thenReturn(userEntity);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(true);
+        when(accessTokenEncoder.encode(any())).thenReturn("access-token");
 
-        userService.registerUser(userDTO);
+        var result = userService.login(new nl.fontys.s3.ticketwave_s3.Controller.DTOS.LoginRequest(username, password));
 
-        verify(passwordEncoder).encode("securepassword");
-        verify(userRepository).save(userEntity);
+        assertNotNull(result);
+        assertEquals("access-token", result.getAccessToken());
+        assertEquals("MANAGER", result.getRole());
+        verify(accessTokenEncoder).encode(any());
+    }
+
+    @Test
+    void login_shouldThrowExceptionWhenCredentialsAreInvalid() {
+        String username = "testuser";
+        String password = "wrongpassword";
+
+        UserEntity userEntity = UserEntity.builder()
+                .id(1)
+                .username(username)
+                .password("encodedPassword")
+                .role(UserRole.MANAGER)
+                .build();
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(false);
+
+        var loginRequest = new nl.fontys.s3.ticketwave_s3.Controller.DTOS.LoginRequest(username, password);
+        assertThrows(InvalidCredentialsException.class, () -> userService.login(loginRequest));
+
+        verify(accessTokenEncoder, never()).encode(any());
     }
 }

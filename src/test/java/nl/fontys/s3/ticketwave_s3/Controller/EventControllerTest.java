@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
+import nl.fontys.s3.ticketwave_s3.Configuration.Security.Token.AccessTokenDecoder;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
@@ -52,6 +53,9 @@ class EventControllerTest {
 
     @MockBean
     private EventMapper eventMapper;
+
+    @MockBean
+    private AccessTokenDecoder accessTokenDecoder;
 
     @Test
     @WithMockUser(username = "user")

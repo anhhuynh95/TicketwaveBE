@@ -23,6 +23,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByUsername(String username) {
         Optional<UserEntity> userEntity = userDBRepository.findByUsername(username);
+        System.out.println("Fetched UserEntity: " + userEntity);
         return userEntity.map(userMapper::toDomain);
     }
 

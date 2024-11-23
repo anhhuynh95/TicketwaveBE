@@ -28,6 +28,7 @@ public class UserMapper {
         User user = new User();
         user.setId(userEntity.getId());
         user.setUsername(userEntity.getUsername());
+        userEntity.setPassword(userEntity.getPassword());
         user.setActive(userEntity.isActive());
         user.setRole(userEntity.getRole());
         return user;
