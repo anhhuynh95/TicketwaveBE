@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
+import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
@@ -11,9 +12,11 @@ import org.springframework.stereotype.Service;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final EventMapper eventMapper;
 
-    public EventServiceImpl(EventRepository eventRepository) {
+    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper) {
         this.eventRepository = eventRepository;
+        this.eventMapper = eventMapper;
     }
 
     /** Retrieve all events. */
@@ -55,4 +58,9 @@ public class EventServiceImpl implements EventService {
         eventRepository.deleteById(id);
     }
 
+    @Override
+    public Page<Event> searchEvents(String query, Pageable pageable) {
+        return eventRepository.searchEvents(query, pageable)
+                .map(eventMapper::toDomain); // Use the EventMapper for conversion
+    }
 }

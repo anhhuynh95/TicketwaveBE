@@ -9,6 +9,7 @@ import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -68,6 +69,7 @@ public class TicketController {
 
     /**Create a new ticket associated with an event.**/
     @PostMapping("/create")
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void createTicket(@RequestParam Integer eventId, @RequestBody TicketDTO input) {
         if (input.getQuantity() == null || input.getQuantity() <= 0) {
@@ -93,6 +95,7 @@ public class TicketController {
 
     /**Update an existing ticket.**/
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTicket(@PathVariable Integer id, @RequestBody TicketDTO input) {
         if (id <= 0) {
@@ -111,6 +114,7 @@ public class TicketController {
 
     /**Delete a specific ticket by ID.**/
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTicket(@PathVariable Integer id) {
         if (id <= 0) {
@@ -136,6 +140,7 @@ public class TicketController {
 
     /** Purchase a ticket by ticket ID and quantity. */
     @PutMapping("/{eventId}/{ticketId}/purchase")
+    @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
     public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
         if (quantity <= 0) {
@@ -146,12 +151,14 @@ public class TicketController {
 
     /** Get all purchased tickets. */
     @GetMapping("/purchased")
+    @PreAuthorize("hasRole('USER')")
     public List<PurchasedTicketDTO> getPurchasedTickets() {
         return ticketService.getPurchasedTickets();
     }
 
     /** Cancel a specific quantity of purchased tickets. */
     @PutMapping("/{ticketId}/cancel")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> cancelTicket(@PathVariable Integer ticketId, @RequestBody Map<String, Integer> requestBody) {
        Integer cancelQuantity = requestBody.get("cancelQuantity");
         if (cancelQuantity == null || cancelQuantity <= 0) {

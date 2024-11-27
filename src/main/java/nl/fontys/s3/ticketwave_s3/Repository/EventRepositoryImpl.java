@@ -47,4 +47,9 @@ public class EventRepositoryImpl implements EventRepository {
     public void deleteById(Integer id) {
         eventDBRepository.deleteById(id);
     }
+
+    @Override
+    public Page<EventEntity> searchEvents(String query, Pageable pageable) {
+        return eventDBRepository.searchEvents(query, pageable);
+    }
 }

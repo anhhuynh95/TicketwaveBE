@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -81,6 +82,7 @@ public class EventController {
 
     /**Create a new event.*/
     @PostMapping
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
     public void createEvent(@Valid @RequestBody EventDTO eventDTO) {
         Event event = eventMapper.toDomain(eventDTO);
@@ -89,6 +91,7 @@ public class EventController {
 
     /**Update an existing event.*/
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateEvent(@PathVariable Integer id, @RequestBody EventDTO eventDTO) {
         Event event = eventMapper.toDomain(eventDTO);
@@ -98,6 +101,7 @@ public class EventController {
 
     /**Delete an event by its ID.*/
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEvent(@PathVariable Integer id) {
         try {
@@ -109,6 +113,7 @@ public class EventController {
 
     /** Upload images to Cloudinary */
     @PostMapping("/{eventId}/uploadImage")
+    @PreAuthorize("hasRole('MANAGER')")
     public String uploadEventImage(
             @PathVariable String eventId,
             @RequestParam("image") MultipartFile imageFile) throws IOException {
@@ -161,5 +166,20 @@ public class EventController {
     private boolean isValidImage(MultipartFile file) {
         String contentType = file.getContentType();
         return contentType != null && contentType.startsWith("image/");
+    }
+
+    /** Search events by query */
+    @GetMapping("/search")
+    public Page<EventDTO> searchEvents(@RequestParam String query,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return eventService.searchEvents(query, pageable)
+                .map(event -> {
+                    List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
+                    EventDTO dto = eventMapper.toDTO(event, tickets);
+                    dto.setImageUrl(cloudinaryService.generateImageUrl(String.valueOf(event.getId())));
+                    return dto;
+                });
     }
 }
