@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 
 import java.util.List;
 
@@ -39,4 +40,9 @@ public class EventEntity {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private List<TicketEntity> tickets;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column
+    private EventType eventType;
 }

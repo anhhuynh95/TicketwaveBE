@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 
 import java.util.List;
 
@@ -24,4 +25,5 @@ public class EventDTO {
     private Integer ticketQuantity;
     private List<TicketDTO> tickets;
     private String imageUrl;
+    private EventType eventType;
 }

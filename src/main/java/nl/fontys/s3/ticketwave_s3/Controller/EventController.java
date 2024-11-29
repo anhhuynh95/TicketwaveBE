@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.EventDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
@@ -170,11 +171,18 @@ public class EventController {
 
     /** Search events by query */
     @GetMapping("/search")
-    public Page<EventDTO> searchEvents(@RequestParam String query,
+    public Page<EventDTO> searchEvents(@RequestParam(required = false) String query,
+                                       @RequestParam(required = false) EventType eventType,
                                        @RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return eventService.searchEvents(query, pageable)
+
+        // Convert empty query to null for backend handling
+        String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
+
+        return (eventType == null
+                ? eventService.searchEvents(searchQuery, pageable)
+                : eventService.searchEvents(searchQuery, eventType, pageable))
                 .map(event -> {
                     List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
                     EventDTO dto = eventMapper.toDTO(event, tickets);

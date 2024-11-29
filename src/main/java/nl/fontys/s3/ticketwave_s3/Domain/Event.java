@@ -16,4 +16,5 @@ public class Event {
     private String description;
     private String dateTime;
     private Integer ticketQuantity;
+    private EventType eventType;
 }

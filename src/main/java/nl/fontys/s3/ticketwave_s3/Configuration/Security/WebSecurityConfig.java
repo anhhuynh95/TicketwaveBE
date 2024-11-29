@@ -53,6 +53,7 @@ public class WebSecurityConfig {
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Set-Cookie")); // Allow exposing cookies
         configuration.setAllowCredentials(true); // Allow credentials (cookies)
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

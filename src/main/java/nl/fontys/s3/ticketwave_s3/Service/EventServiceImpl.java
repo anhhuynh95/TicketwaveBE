@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
@@ -60,7 +61,15 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<Event> searchEvents(String query, Pageable pageable) {
-        return eventRepository.searchEvents(query, pageable)
-                .map(eventMapper::toDomain); // Use the EventMapper for conversion
+        String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
+        return eventRepository.searchEvents(searchQuery, pageable)
+                .map(eventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> searchEvents(String query, EventType eventType, Pageable pageable) {
+        String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
+        return eventRepository.searchEventsByType(searchQuery, eventType, pageable)
+                .map(eventMapper::toDomain);
     }
 }

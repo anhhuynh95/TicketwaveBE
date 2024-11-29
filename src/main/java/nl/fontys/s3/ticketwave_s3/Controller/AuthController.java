@@ -23,12 +23,12 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest, HttpServletResponse response) {
         LoginResponse loginResponse = userService.login(loginRequest);
 
-        // Manually set cookie with SameSite=None
-        String cookieHeader = String.format(
-                "jwt=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=None; Secure",
-                loginResponse.getAccessToken(), 30 * 60
-        );
-        response.addHeader("Set-Cookie", cookieHeader);
+        // Set HttpOnly cookie with SameSite=Lax
+        response.addHeader("Set-Cookie", String.format(
+                "jwt=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=Lax",
+                loginResponse.getAccessToken(),
+                30 * 60 // 30 minutes
+        ));
 
         return ResponseEntity.ok(loginResponse);
     }

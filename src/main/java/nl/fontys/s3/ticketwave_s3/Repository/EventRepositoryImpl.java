@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Repository;
 
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.EventDBRepository;
@@ -51,5 +52,10 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public Page<EventEntity> searchEvents(String query, Pageable pageable) {
         return eventDBRepository.searchEvents(query, pageable);
+    }
+
+    @Override
+    public Page<EventEntity> searchEventsByType(String query, EventType eventType, Pageable pageable){
+        return eventDBRepository.searchEventsByType(query, eventType, pageable);
     }
 }

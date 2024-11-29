@@ -31,6 +31,7 @@ public class EventMapper {
         dto.setTicketQuantity(event.getTicketQuantity());
         dto.setTickets(tickets.stream().map(ticketMapper::toDTO).toList());
         String cloudinaryBaseUrl = "https://res.cloudinary.com/du63rfliz/image/upload/events/";
+        dto.setEventType(event.getEventType());
         dto.setImageUrl(cloudinaryBaseUrl + event.getId());
         return dto;
     }
@@ -47,6 +48,7 @@ public class EventMapper {
         event.setDescription(dto.getDescription());
         event.setDateTime(dto.getDateTime());
         event.setTicketQuantity(dto.getTicketQuantity());
+        event.setEventType(dto.getEventType());
         return event;
     }
 
@@ -62,6 +64,7 @@ public class EventMapper {
         entity.setDescription(event.getDescription());
         entity.setDateTime(event.getDateTime());
         entity.setTicketQuantity(event.getTicketQuantity());
+        entity.setEventType(event.getEventType());
         return entity;
     }
 
@@ -77,6 +80,7 @@ public class EventMapper {
         event.setDescription(entity.getDescription());
         event.setDateTime(entity.getDateTime());
         event.setTicketQuantity(entity.getTicketQuantity());
+        event.setEventType(entity.getEventType());
         return event;
     }
 }
