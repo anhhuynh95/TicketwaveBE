@@ -22,5 +22,5 @@ public class UserDTO {
     @NotBlank(message = "Password must not be blank")
     private String password;
 
-    private UserRole role;
+    private UserRole role = UserRole.USER;
 }

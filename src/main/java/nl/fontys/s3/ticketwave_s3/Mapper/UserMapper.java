@@ -6,6 +6,8 @@ import nl.fontys.s3.ticketwave_s3.Domain.UserRole;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 public class UserMapper {
 
@@ -13,24 +15,26 @@ public class UserMapper {
         if (userDTO == null) {
             return null;
         }
-        UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(userDTO.getUsername());
-        userEntity.setPassword(userDTO.getPassword());
-        userEntity.setActive(true);
-        userEntity.setRole(UserRole.USER);
-        return userEntity;
+        return UserEntity.builder()
+                .username(userDTO.getUsername())
+                .password(userDTO.getPassword())
+                .role(userDTO.getRole() == null ? UserRole.USER : userDTO.getRole())
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     public User toDomain(UserEntity userEntity) {
         if (userEntity == null) {
             return null;
         }
-        User user = new User();
-        user.setId(userEntity.getId());
-        user.setUsername(userEntity.getUsername());
-        userEntity.setPassword(userEntity.getPassword());
-        user.setActive(userEntity.isActive());
-        user.setRole(userEntity.getRole());
-        return user;
+        return User.builder()
+                .id(userEntity.getId())
+                .username(userEntity.getUsername())
+                .password(userEntity.getPassword())
+                .role(userEntity.getRole())
+                .active(userEntity.isActive())
+                .createdAt(userEntity.getCreatedAt())
+                .build();
     }
 }

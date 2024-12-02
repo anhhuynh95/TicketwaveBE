@@ -32,11 +32,14 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF protection
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Apply CORS configuration
-                .authorizeHttpRequests(auth -> auth
+                .sessionManagement(session
+                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
+                .cors(cors
+                        -> cors.configurationSource(corsConfigurationSource())) // Apply CORS configuration
+                .authorizeHttpRequests(auth
+                        -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
-                        .requestMatchers(HttpMethod.GET, "/events","/events/search", "/public-endpoints/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/events","/events/search", "/comments/**", "/public-endpoints/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/me").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER")
                         .anyRequest().authenticated() // Protect all other endpoints

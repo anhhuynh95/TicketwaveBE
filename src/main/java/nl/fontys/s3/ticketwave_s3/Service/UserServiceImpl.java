@@ -8,7 +8,6 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.LoginResponse;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.UserDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.UserService;
 import nl.fontys.s3.ticketwave_s3.Domain.User;
-import nl.fontys.s3.ticketwave_s3.Domain.UserRole;
 import nl.fontys.s3.ticketwave_s3.Mapper.UserMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.UserDBRepository;
@@ -17,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,57 +29,51 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(UserDTO userDTO) {
-        if (userRepository.findByUsername(userDTO.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Username is already taken");
-        }
+        userRepository.findByUsername(userDTO.getUsername())
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException("Username is already taken");
+                });
 
-        // Convert DTO to Entity and hash password
         UserEntity userEntity = userMapper.toEntity(userDTO);
-        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword())); // Encode password securely
 
-        // Assign role: use provided role or default to USER
-        if (userDTO.getRole() == null) { // Check if role is null
-            userEntity.setRole(UserRole.USER); // Default role
-        } else {
-            userEntity.setRole(userDTO.getRole()); // Use provided role directly (already of type UserRole)
-        }
-
-        // Save user entity and return domain object
         userRepository.save(userEntity);
         return userMapper.toDomain(userEntity);
     }
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-        // Fetch user from repository
         UserEntity user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(InvalidCredentialsException::new);
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
-        // Validate password
-        if (!matchesPassword(loginRequest.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException();
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
-        // Generate access token
-        String accessToken = generateAccessToken(user);
+        String accessToken = accessTokenEncoder.encode(
+                new AccessTokenImpl(
+                        user.getUsername(),
+                        Long.valueOf(user.getId()),
+                        List.of(user.getRole().name())
+                )
+        );
 
-        // Return LoginResponse with accessToken and role
         return LoginResponse.builder()
                 .accessToken(accessToken)
-                .role(user.getRole().name()) // Include role in response
+                .role(user.getRole().name())
                 .build();
     }
 
-    private boolean matchesPassword(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username).map(userMapper::toDomain);
     }
 
-    private String generateAccessToken(UserEntity user) {
-        // Convert UserEntity fields to token payload
-        return accessTokenEncoder.encode(new AccessTokenImpl(
-                user.getUsername(),
-                Long.valueOf(user.getId()), // Convert Integer to Long
-                List.of(user.getRole().name()) // Convert single role to List<String>
-        ));
+    @Override
+    public String findUsernameById(Integer userId) {
+        return userRepository.findById(userId)
+                .map(userMapper::toDomain) // Convert UserEntity to User
+                .map(User::getUsername)   // Extract the username
+                .orElse("Unknown User");
     }
 }

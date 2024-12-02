@@ -55,7 +55,7 @@ public class EventController {
     /**Retrieve all events.*/
     @GetMapping
     public Page<EventDTO> getAllEvents(@RequestParam(defaultValue = "0") int page,
-                                             @RequestParam(defaultValue = "10") int size) {
+                                             @RequestParam(defaultValue = "3") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return eventService.getAllEvents(pageable)
                 .map(event -> {
@@ -174,7 +174,7 @@ public class EventController {
     public Page<EventDTO> searchEvents(@RequestParam(required = false) String query,
                                        @RequestParam(required = false) EventType eventType,
                                        @RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "10") int size) {
+                                       @RequestParam(defaultValue = "3") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         // Convert empty query to null for backend handling
