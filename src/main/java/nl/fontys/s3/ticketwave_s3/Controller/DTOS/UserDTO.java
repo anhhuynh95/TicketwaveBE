@@ -22,5 +22,6 @@ public class UserDTO {
     @NotBlank(message = "Password must not be blank")
     private String password;
 
+    @Builder.Default
     private UserRole role = UserRole.USER;
 }

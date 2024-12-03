@@ -1,7 +1,10 @@
 package nl.fontys.s3.ticketwave_s3.Service;
 
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
+import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
+import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +27,9 @@ class EventServiceImplTest {
     @Mock
     private EventRepository eventRepository;
 
+    @Mock
+    private EventMapper eventMapper;
+
     @InjectMocks
     private EventServiceImpl eventService;
 
@@ -33,7 +40,7 @@ class EventServiceImplTest {
                 Event.builder().id(2).name("Festival").location("Rotterdam").build()
         );
 
-        Pageable pageable = PageRequest.of(0, 10); // Page 0 with 10 items per page
+        Pageable pageable = PageRequest.of(0, 10);
         Page<Event> eventPage = new PageImpl<>(events, pageable, events.size());
         when(eventRepository.findAll(pageable)).thenReturn(eventPage);
 
@@ -41,6 +48,19 @@ class EventServiceImplTest {
 
         assertEquals(events, result.getContent());
         assertEquals(2, result.getTotalElements());
+        verify(eventRepository).findAll(pageable);
+    }
+
+    @Test
+    void getAllEvents_shouldReturnEmptyPageWhenNoEventsFound() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Event> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        when(eventRepository.findAll(pageable)).thenReturn(emptyPage);
+
+        Page<Event> result = eventService.getAllEvents(pageable);
+
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getTotalElements());
         verify(eventRepository).findAll(pageable);
     }
 
@@ -117,5 +137,65 @@ class EventServiceImplTest {
         assertEquals("Event not found", exception.getMessage());
         verify(eventRepository).findById(1);
         verify(eventRepository, never()).deleteById(anyInt());
+    }
+
+    @Test
+    void searchEvents_shouldReturnPaginatedResultsWhenQueryExists() {
+        String query = "concert";
+        Pageable pageable = PageRequest.of(0, 5);
+
+        EventEntity eventEntity = EventEntity.builder().id(1).name("Concert").location("Amsterdam").build();
+        Event event = Event.builder().id(1).name("Concert").location("Amsterdam").build();
+
+        List<EventEntity> eventEntities = List.of(eventEntity);
+        List<Event> events = List.of(event);
+
+        Page<EventEntity> eventEntityPage = new PageImpl<>(eventEntities, pageable, eventEntities.size());
+
+        when(eventRepository.searchEvents(query, pageable)).thenReturn(eventEntityPage);
+        when(eventMapper.toDomain(eventEntity)).thenReturn(event);
+
+        Page<Event> result = eventService.searchEvents(query, pageable);
+
+        assertEquals(events, result.getContent());
+        verify(eventRepository).searchEvents(query, pageable);
+    }
+
+    @Test
+    void searchEvents_shouldReturnPaginatedResultsForEventType() {
+        String query = "concert";
+        EventType eventType = EventType.MUSIC;
+        Pageable pageable = PageRequest.of(0, 5);
+
+        EventEntity eventEntity = EventEntity.builder().id(1).name("Concert").location("Amsterdam").build();
+        Event event = Event.builder().id(1).name("Concert").location("Amsterdam").build();
+
+        List<EventEntity> eventEntities = List.of(eventEntity);
+        List<Event> events = List.of(event);
+
+        Page<EventEntity> eventEntityPage = new PageImpl<>(eventEntities, pageable, eventEntities.size());
+
+        when(eventRepository.searchEventsByType(query, eventType, pageable)).thenReturn(eventEntityPage);
+        when(eventMapper.toDomain(eventEntity)).thenReturn(event);
+
+        Page<Event> result = eventService.searchEvents(query, eventType, pageable);
+
+        assertEquals(events, result.getContent());
+        verify(eventRepository).searchEventsByType(query, eventType, pageable);
+    }
+
+    @Test
+    void searchEvents_shouldReturnEmptyPageWhenNoResultsFound() {
+        String query = "nonexistent";
+        Pageable pageable = PageRequest.of(0, 5);
+
+        Page<EventEntity> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(eventRepository.searchEvents(query, pageable)).thenReturn(emptyPage);
+
+        Page<Event> result = eventService.searchEvents(query, pageable);
+
+        assertTrue(result.getContent().isEmpty());
+        verify(eventRepository).searchEvents(query, pageable);
     }
 }

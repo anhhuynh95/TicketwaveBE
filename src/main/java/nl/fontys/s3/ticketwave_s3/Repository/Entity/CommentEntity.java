@@ -2,10 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Repository.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +29,12 @@ public class CommentEntity {
     @Column
     private String commentText;
 
+    @Builder.Default
     @Column (updatable = false, insertable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean toxic = false;
+
 }

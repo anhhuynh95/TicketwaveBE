@@ -31,4 +31,10 @@ public class UserRepositoryImpl implements UserRepository {
     public void save(UserEntity userEntity) {
         userDBRepository.save(userEntity);
     }
+
+    @Override
+    public Optional<UserEntity> findById(Integer id) {
+        return userDBRepository.findById(id);
+    }
+
 }

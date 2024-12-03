@@ -25,4 +25,14 @@ public class CommentMapper {
                 .commentText(commentDTO.getCommentText())
                 .build();
     }
+
+    public CommentDTO toDTO(CommentEntity commentEntity) {
+        return CommentDTO.builder()
+                .id(commentEntity.getId())
+                .eventId(commentEntity.getEventId())
+                .userId(commentEntity.getUserId())
+                .commentText(commentEntity.getCommentText())
+                .createdAt(commentEntity.getCreatedAt())
+                .build();
+    }
 }

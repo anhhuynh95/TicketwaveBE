@@ -19,6 +19,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentDBRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserService userService;
+    private final ModerationService moderationService;
 
     @Override
     public CommentDTO addComment(CommentDTO commentDTO) {
@@ -31,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
         CommentEntity commentEntity = commentMapper.toEntity(commentDTO);
         CommentEntity savedEntity = commentRepository.save(commentEntity);
 
+        moderationService.checkAndFlagComment(commentMapper.toDTO(savedEntity));
         // Fetch the username from UserService using userId
         String username = userService.findUsernameById(userId);
 
