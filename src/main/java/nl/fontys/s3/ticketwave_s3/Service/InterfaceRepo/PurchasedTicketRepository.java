@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PurchasedTicketRepository extends JpaRepository<PurchasedTicketEntity, Integer> {
     List<PurchasedTicketEntity> findByTicketId(Integer ticketId);
+    List<PurchasedTicketEntity> findByUserId(Integer userId);
 }

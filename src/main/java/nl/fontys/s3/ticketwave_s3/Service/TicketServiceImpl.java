@@ -7,11 +7,13 @@ import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
+import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.PurchasedTicketRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
+import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,12 +38,15 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketMapper ticketMapper;
 
-    public TicketServiceImpl(TicketRepository ticketRepository, EventRepository eventRepository, PurchasedTicketRepository purchasedTicketRepository, EventMapper eventMapper, TicketMapper ticketMapper) {
+    private final UserRepository userRepository;
+
+    public TicketServiceImpl(TicketRepository ticketRepository, EventRepository eventRepository, PurchasedTicketRepository purchasedTicketRepository, EventMapper eventMapper, TicketMapper ticketMapper, UserRepository userRepository) {
         this.ticketRepository = ticketRepository;
         this.eventRepository = eventRepository;
         this.purchasedTicketRepository = purchasedTicketRepository;
         this.eventMapper = eventMapper;
         this.ticketMapper = ticketMapper;
+        this.userRepository = userRepository;
     }
 
     /** Get all tickets. */
@@ -105,7 +110,7 @@ public class TicketServiceImpl implements TicketService {
     /** Purchase a specified quantity of a ticket. */
     @Override
     @Transactional
-    public void purchaseTicket(Integer ticketId, Integer quantity) {
+    public void purchaseTicket(Integer ticketId, Integer quantity, Integer userId) {
 
         Ticket ticket = getTicketById(ticketId);
         if (ticket == null) {
@@ -131,19 +136,25 @@ public class TicketServiceImpl implements TicketService {
         ticketEntity.setQuantity(ticketEntity.getQuantity() - quantity);
         ticketRepository.saveEntity(ticketEntity);
 
-        // Save a PurchasedTicketEntity record
+        // Retrieve the UserEntity object
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        // Save the purchase
         PurchasedTicketEntity purchasedTicket = new PurchasedTicketEntity();
         purchasedTicket.setTicket(ticketEntity);
         purchasedTicket.setPurchaseQuantity(quantity);
         purchasedTicket.setPurchaseDate(LocalDateTime.now());
+        purchasedTicket.setUser(userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.")));
 
         purchasedTicketRepository.saveAndFlush(purchasedTicket);
     }
 
     /** Get all purchased tickets. */
     @Override
-    public List<PurchasedTicketDTO> getPurchasedTickets() {
-        return purchasedTicketRepository.findAll().stream()
+    public List<PurchasedTicketDTO> getPurchasedTickets(Integer userId) {
+        return purchasedTicketRepository.findByUserId(userId).stream()
                 .map(ticketMapper::toPurchasedTicketDTO)
                 .toList();
     }

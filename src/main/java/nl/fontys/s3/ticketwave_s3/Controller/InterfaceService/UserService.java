@@ -12,4 +12,6 @@ public interface UserService {
     LoginResponse login(LoginRequest loginRequest);
     Optional<User> findByUsername(String username);
     String findUsernameById(Integer userId);
+    Integer findUserIdByEmail(String email);
+
 }

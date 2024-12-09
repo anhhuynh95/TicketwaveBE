@@ -30,6 +30,10 @@ public class PurchasedTicketEntity {
     @Column(name = "purchase_date")
     private LocalDateTime purchaseDate;
 
+    @ManyToOne
+    @JoinColumn
+    private UserEntity user;
+
     @Override
     public String toString() {
         return "PurchasedTicketEntity{id=" + id + ", purchaseQuantity=" + purchaseQuantity + ", purchaseDate=" + purchaseDate + "}";

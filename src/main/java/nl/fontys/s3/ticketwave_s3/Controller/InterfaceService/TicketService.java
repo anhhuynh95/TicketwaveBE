@@ -9,11 +9,11 @@ public interface TicketService {
     List<Ticket> getAllTickets();
     Ticket getTicketById(Integer id);
     List<Ticket> getTicketsByPrice(Double maxPrice);
-    List<PurchasedTicketDTO> getPurchasedTickets();
+    List<PurchasedTicketDTO> getPurchasedTickets(Integer userId);
     void createTicket(Ticket ticket);
     void updateTicket(Integer id, Ticket ticket);
     void deleteTicket(Integer id);
-    void purchaseTicket(Integer id, Integer quantity);
+    void purchaseTicket(Integer id, Integer quantity, Integer userId);
     List<Ticket> getTicketsByEventId(Integer eventId);
     void cancelTickets(Integer ticketId, Integer cancelQuantity);
 }

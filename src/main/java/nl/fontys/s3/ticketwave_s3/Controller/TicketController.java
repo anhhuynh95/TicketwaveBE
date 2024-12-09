@@ -4,12 +4,14 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.TicketDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
+import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.UserService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,12 +28,15 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+    private final UserService userService;
+
     private final TicketMapper ticketMapper;
 
     private final EventService eventService;
 
-    public TicketController(TicketService ticketService, TicketMapper ticketMapper, EventService eventService) {
+    public TicketController(TicketService ticketService, UserService userService, TicketMapper ticketMapper, EventService eventService) {
         this.ticketService = ticketService;
+        this.userService = userService;
         this.ticketMapper = ticketMapper;
         this.eventService = eventService;
     }
@@ -142,18 +147,23 @@ public class TicketController {
     @PutMapping("/{eventId}/{ticketId}/purchase")
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)
-    public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity) {
+    public void purchaseTicket(@PathVariable Integer eventId, @PathVariable Integer ticketId, @RequestParam Integer quantity, Authentication authentication) {
         if (quantity <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be a positive integer.");
         }
-        ticketService.purchaseTicket(ticketId, quantity);
+        String email = authentication.getName(); // Extract user's email from authentication
+        Integer userId = userService.findUserIdByEmail(email); // Fetch userId from the database
+
+        ticketService.purchaseTicket(ticketId, quantity, userId);
     }
 
     /** Get all purchased tickets. */
     @GetMapping("/purchased")
     @PreAuthorize("hasRole('USER')")
-    public List<PurchasedTicketDTO> getPurchasedTickets() {
-        return ticketService.getPurchasedTickets();
+    public List<PurchasedTicketDTO> getPurchasedTickets(Authentication authentication) {
+        String email = authentication.getName(); // Extract the user's email
+        Integer userId = userService.findUserIdByEmail(email);
+        return ticketService.getPurchasedTickets(userId);
     }
 
     /** Cancel a specific quantity of purchased tickets. */

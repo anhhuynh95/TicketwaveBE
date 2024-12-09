@@ -80,4 +80,12 @@ public class UserServiceImpl implements UserService {
                 .map(User::getUsername)
                 .orElse("Unknown User");
     }
+
+    @Override
+    public Integer findUserIdByEmail(String email) {
+        return userRepository.findByUsername(email)
+                .map(UserEntity::getId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found for email: " + email));
+    }
+
 }
