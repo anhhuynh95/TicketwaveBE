@@ -177,7 +177,6 @@ public class EventController {
                                        @RequestParam(defaultValue = "3") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        // Convert empty query to null for backend handling
         String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
 
         return (eventType == null

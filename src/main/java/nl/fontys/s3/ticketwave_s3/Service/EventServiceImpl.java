@@ -23,7 +23,7 @@ public class EventServiceImpl implements EventService {
     /** Retrieve all events. */
     @Override
     public Page<Event> getAllEvents(Pageable pageable) {
-        return eventRepository.findAll(pageable); // Pass pageable to repository
+        return eventRepository.findAll(pageable);
     }
 
     /** Find a specific event by ID. */

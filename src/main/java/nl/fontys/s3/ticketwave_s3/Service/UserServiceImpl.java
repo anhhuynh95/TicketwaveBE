@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
                 });
 
         UserEntity userEntity = userMapper.toEntity(userDTO);
-        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword())); // Encode password securely
+        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         userRepository.save(userEntity);
         return userMapper.toDomain(userEntity);
@@ -45,6 +45,10 @@ public class UserServiceImpl implements UserService {
     public LoginResponse login(LoginRequest loginRequest) {
         UserEntity user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+
+        if (!user.isActive()) {
+            throw new InvalidCredentialsException("Your account is inactive. Please contact support.");
+        }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Invalid username or password");
@@ -72,8 +76,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String findUsernameById(Integer userId) {
         return userRepository.findById(userId)
-                .map(userMapper::toDomain) // Convert UserEntity to User
-                .map(User::getUsername)   // Extract the username
+                .map(userMapper::toDomain)
+                .map(User::getUsername)
                 .orElse("Unknown User");
     }
 }

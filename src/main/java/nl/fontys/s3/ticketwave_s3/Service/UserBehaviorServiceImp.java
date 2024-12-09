@@ -17,6 +17,7 @@ public class UserBehaviorServiceImp implements UserBehaviorService {
     private final UserBehaviorRepository userBehaviorRepository;
     private final UserRepository userRepository;
     private final UserBehaviorMapper userBehaviorMapper;
+    private final NotificationService notificationService;
 
     @Override
     public UserBehaviorDTO getUserBehavior(Integer userId) {
@@ -25,6 +26,7 @@ public class UserBehaviorServiceImp implements UserBehaviorService {
                 .orElseThrow(() -> new IllegalArgumentException("User behavior not found."));
     }
 
+    @Override
     public void warnUser(Integer userId) {
         UserBehaviorEntity userBehavior = userBehaviorRepository.findByUserId(userId)
                 .orElseGet(() -> createUserBehavior(userId));
@@ -35,25 +37,35 @@ public class UserBehaviorServiceImp implements UserBehaviorService {
 
         userBehavior.setWarnings(userBehavior.getWarnings() + 1);
         userBehaviorRepository.save(userBehavior);
+
+        notificationService.notifyUser(userId, "You have been warned by an admin. Please adhere to community guidelines.");
     }
 
     public void banUser(Integer userId) {
         UserBehaviorEntity userBehavior = userBehaviorRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User behavior not found."));
 
+        userBehavior.setWarnings(2);
         userBehavior.setBanned(true);
         userBehaviorRepository.save(userBehavior);
 
-        // Additional logic to disable or delete the user account
-        // userRepository.deleteById(userId);
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        user.setActive(false);
+        userRepository.save(user);
+
+        notificationService.notifyUser(userId, "Your account has been banned due to repeated violations.");
     }
 
     private UserBehaviorEntity createUserBehavior(Integer userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
-        UserBehaviorEntity userBehavior = UserBehaviorEntity.builder()
-                .user(user)
-                .build();
-        return userBehaviorRepository.save(userBehavior);
+        return userBehaviorRepository.save(
+                UserBehaviorEntity.builder()
+                        .user(user)
+                        .warnings(0)
+                        .isBanned(false)
+                        .build()
+        );
     }
 }

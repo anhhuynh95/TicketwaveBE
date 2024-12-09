@@ -1,5 +1,8 @@
 package nl.fontys.s3.ticketwave_s3.Configuration.Security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import nl.fontys.s3.ticketwave_s3.Configuration.Security.Auth.AuthenticationRequestFilter;
 import nl.fontys.s3.ticketwave_s3.Configuration.Security.Token.AccessTokenDecoder;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +45,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/events","/events/search", "/comments/**", "/public-endpoints/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/me").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET,"/websocket-endpoint/**").permitAll()
                         .anyRequest().authenticated() // Protect all other endpoints
                 )
                 .addFilterBefore(new AuthenticationRequestFilter(accessTokenDecoder), UsernamePasswordAuthenticationFilter.class); // Add custom filter
@@ -60,6 +64,14 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 
 }

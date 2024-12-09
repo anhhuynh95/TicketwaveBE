@@ -20,7 +20,7 @@ public class UserBehaviorController {
     @PostMapping("/warn/{userId}")
     public ResponseEntity<String> warnUser(@PathVariable Integer userId) {
         userBehaviorService.warnUser(userId);
-        notificationService.notifyUser(userId, "You have been warned by an admin. Please adhere to community guidelines.");
+        notificationService.notifyUser(userId, "You have been warned by an admin.");
         return ResponseEntity.ok("User warned successfully.");
     }
 

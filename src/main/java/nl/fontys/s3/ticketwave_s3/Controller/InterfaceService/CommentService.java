@@ -7,4 +7,6 @@ import java.util.List;
 public interface CommentService {
     CommentDTO addComment(CommentDTO commentDTO);
     List<CommentDTO> getCommentsByEventId(Integer eventId);
+    void deleteComment(Integer commentId);
+
 }

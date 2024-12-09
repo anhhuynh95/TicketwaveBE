@@ -6,6 +6,7 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.CommentDTO;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.CommentService;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.UserService;
 import nl.fontys.s3.ticketwave_s3.Domain.User;
+import nl.fontys.s3.ticketwave_s3.Service.ModerationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,10 +60,20 @@ public class CommentController {
         }
     }
 
-
     @GetMapping("/{eventId}")
     public ResponseEntity<List<CommentDTO>> getCommentsByEventId(@PathVariable Integer eventId) {
         List<CommentDTO> comments = commentService.getCommentsByEventId(eventId);
         return ResponseEntity.ok(comments);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<String> deleteComment(@PathVariable Integer commentId) {
+        try {
+            commentService.deleteComment(commentId);
+            return ResponseEntity.ok("Comment deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        }
     }
 }
