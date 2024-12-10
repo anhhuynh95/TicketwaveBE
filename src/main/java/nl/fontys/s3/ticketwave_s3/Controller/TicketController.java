@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -177,4 +178,19 @@ public class TicketController {
        ticketService.cancelTickets(ticketId, cancelQuantity);
        return ResponseEntity.noContent().build();
     }
+
+//    @PreAuthorize("hasRole('MANAGER')")
+    @GetMapping("/analytics/event-type-sales")
+    public Map<String, Long> getEventTypeSales() {
+        System.out.println("Inside getEventTypeSales");
+        return ticketService.getTotalPurchasesByEventType();
+    }
+
+//    @PreAuthorize("hasRole('MANAGER')")
+    @GetMapping("/analytics/monthly-sales")
+    public Map<String, Double> getMonthlySales() {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        return ticketService.getMonthlySales(sixMonthsAgo);
+    }
+
 }

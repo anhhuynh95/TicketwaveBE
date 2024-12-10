@@ -2,6 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.PurchasedTicketDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
+import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
 import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
@@ -9,7 +10,7 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
-import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.PurchasedTicketRepository;
+import nl.fontys.s3.ticketwave_s3.Repository.JPA.PurchasedTicketRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.TicketService;
 import nl.fontys.s3.ticketwave_s3.Domain.Ticket;
@@ -20,7 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TicketServiceImpl implements TicketService {
@@ -219,6 +222,49 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket entity not found."));
         ticketEntity.setQuantity(ticketEntity.getQuantity() + cancelQuantity);
         ticketRepository.saveEntity(ticketEntity);
+    }
+
+    public Map<String, Long> getTotalPurchasesByEventType() {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        List<Object[]> results = purchasedTicketRepository.findPurchasesByEventType(sixMonthsAgo);
+
+        System.out.println("Results from findPurchasesByEventType: " + results);
+
+        if (results.isEmpty()) {
+            System.out.println("No data found for purchases by event type.");
+            return Collections.emptyMap();
+        }
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> ((EventType) result[0]).name(),
+                        result -> (Long) result[1]
+                ));
+    }
+
+
+    @Override
+    public Map<String, Double> getMonthlySales(LocalDateTime startDate) {
+        List<Object[]> results = purchasedTicketRepository.findMonthlySales(startDate);
+
+        System.out.println("Results from findMonthlySales: " + results);
+
+        if (results.isEmpty()) {
+            System.out.println("No data found for monthly sales.");
+            return Collections.emptyMap();
+        }
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        row -> {
+                            int monthNumber = (int) row[0];
+                            // Convert month number to full month name
+                            String monthName = Month.of(monthNumber).name();
+                            // Capitalize the first letter and make the rest lowercase
+                            return monthName.substring(0, 1).toUpperCase() + monthName.substring(1).toLowerCase();
+                        },
+                        row -> ((Number) row[1]).doubleValue() // Convert the sales value to Double
+                ));
     }
 
 }

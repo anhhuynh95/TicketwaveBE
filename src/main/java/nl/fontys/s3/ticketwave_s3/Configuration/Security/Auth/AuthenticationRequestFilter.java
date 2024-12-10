@@ -36,18 +36,24 @@ public class AuthenticationRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Log the incoming request
+        System.out.println("Incoming Request: " + request.getMethod() + " " + request.getRequestURI());
+
         // Log cookies received in the request
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             Arrays.stream(cookies).forEach(cookie ->
                     System.out.println("Cookie Name: " + cookie.getName() + ", Value: " + cookie.getValue())
             );
+        } else {
+            System.out.println("No cookies present in the request.");
         }
 
         // Extract token from the cookie
         String accessTokenString = extractTokenFromCookie(request);
         System.out.println("Extracted JWT: " + accessTokenString); // Log extracted JWT
         if (accessTokenString == null) {
+            System.out.println("No JWT token found, proceeding without authentication.");
             chain.doFilter(request, response);
             return;
         }
@@ -57,12 +63,18 @@ public class AuthenticationRequestFilter extends OncePerRequestFilter {
             AccessToken accessToken = accessTokenDecoder.decode(accessTokenString);
             System.out.println("Decoded JWT - Subject: " + accessToken.getSubject() +
                     ", Roles: " + accessToken.getRoles());
+
+            // Set up SecurityContext
             setupSpringSecurityContext(accessToken);
-            chain.doFilter(request, response);
+            System.out.println("SecurityContext after setup: " +
+                    SecurityContextHolder.getContext().getAuthentication());
         } catch (InvalidAccessTokenException e) {
-            logger.error("Error validating access token", e);
+            System.err.println("Invalid access token: " + e.getMessage());
             sendAuthenticationError(response);
+            return;
         }
+
+        chain.doFilter(request, response);
     }
 
     private String extractTokenFromCookie(HttpServletRequest request) {
@@ -100,6 +112,9 @@ public class AuthenticationRequestFilter extends OncePerRequestFilter {
                 userDetails, null, userDetails.getAuthorities());
         usernamePasswordAuthenticationToken.setDetails(accessToken);
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
+        // Log after setting
+        System.out.println("SecurityContextHolder set to: " + SecurityContextHolder.getContext().getAuthentication());
     }
 
 }

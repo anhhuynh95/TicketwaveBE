@@ -45,9 +45,11 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/events","/events/search", "/comments/**", "/public-endpoints/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/me").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/analytics/event-type-sales", "/analytics/monthly-sales").hasAuthority("ROLE_MANAGER")
                         .requestMatchers(HttpMethod.GET,"/websocket-endpoint/**").permitAll()
                         .anyRequest().authenticated() // Protect all other endpoints
                 )
+                .anonymous(AbstractHttpConfigurer::disable) // Disable anonymous users
                 .addFilterBefore(new AuthenticationRequestFilter(accessTokenDecoder), UsernamePasswordAuthenticationFilter.class); // Add custom filter
         return http.build();
     }
