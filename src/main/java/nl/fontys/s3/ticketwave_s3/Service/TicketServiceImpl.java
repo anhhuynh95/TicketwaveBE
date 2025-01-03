@@ -242,7 +242,6 @@ public class TicketServiceImpl implements TicketService {
                 ));
     }
 
-
     @Override
     public Map<String, Double> getMonthlySales(LocalDateTime startDate) {
         List<Object[]> results = purchasedTicketRepository.findMonthlySales(startDate);
@@ -257,13 +256,13 @@ public class TicketServiceImpl implements TicketService {
         return results.stream()
                 .collect(Collectors.toMap(
                         row -> {
-                            int monthNumber = (int) row[0];
-                            // Convert month number to full month name
-                            String monthName = Month.of(monthNumber).name();
-                            // Capitalize the first letter and make the rest lowercase
-                            return monthName.substring(0, 1).toUpperCase() + monthName.substring(1).toLowerCase();
+                            int year = (int) row[0];
+                            int month = (int) row[1];
+                            // Convert the month number to the full month name and format with year
+                            String monthName = Month.of(month).name();
+                            return monthName.substring(0, 1).toUpperCase() + monthName.substring(1).toLowerCase() + " " + year;
                         },
-                        row -> ((Number) row[1]).doubleValue() // Convert the sales value to Double
+                        row -> ((Number) row[2]).doubleValue() // Convert the sales value to Double
                 ));
     }
 

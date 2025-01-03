@@ -22,14 +22,12 @@ public interface PurchasedTicketRepository extends JpaRepository<PurchasedTicket
             "GROUP BY e.eventType")
     List<Object[]> findPurchasesByEventType(@Param("startDate") LocalDateTime startDate);
 
-
-    @Query("SELECT MONTH(p.purchaseDate) AS month, SUM(p.purchaseQuantity * t.price) AS totalSales " +
+    @Query("SELECT YEAR(p.purchaseDate) AS year, MONTH(p.purchaseDate) AS month, SUM(p.purchaseQuantity * t.price) AS totalSales " +
             "FROM PurchasedTicketEntity p " +
             "JOIN p.ticket t " +
             "WHERE p.purchaseDate >= :startDate " +
-            "GROUP BY MONTH(p.purchaseDate) " +
-            "ORDER BY month")
+            "GROUP BY YEAR(p.purchaseDate), MONTH(p.purchaseDate) " +
+            "ORDER BY YEAR(p.purchaseDate), MONTH(p.purchaseDate)")
     List<Object[]> findMonthlySales(@Param("startDate") LocalDateTime startDate);
-
 
 }
