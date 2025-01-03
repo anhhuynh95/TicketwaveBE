@@ -152,8 +152,8 @@ public class TicketController {
         if (quantity <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be a positive integer.");
         }
-        String email = authentication.getName(); // Extract user's email from authentication
-        Integer userId = userService.findUserIdByEmail(email); // Fetch userId from the database
+        String email = authentication.getName();
+        Integer userId = userService.findUserIdByEmail(email);
 
         ticketService.purchaseTicket(ticketId, quantity, userId);
     }
@@ -162,7 +162,7 @@ public class TicketController {
     @GetMapping("/purchased")
     @PreAuthorize("hasRole('USER')")
     public List<PurchasedTicketDTO> getPurchasedTickets(Authentication authentication) {
-        String email = authentication.getName(); // Extract the user's email
+        String email = authentication.getName();
         Integer userId = userService.findUserIdByEmail(email);
         return ticketService.getPurchasedTickets(userId);
     }
@@ -179,14 +179,14 @@ public class TicketController {
        return ResponseEntity.noContent().build();
     }
 
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/analytics/event-type-sales")
     public Map<String, Long> getEventTypeSales() {
         System.out.println("Inside getEventTypeSales");
         return ticketService.getTotalPurchasesByEventType();
     }
 
-//    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/analytics/monthly-sales")
     public Map<String, Double> getMonthlySales() {
         LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);

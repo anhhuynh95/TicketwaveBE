@@ -15,4 +15,5 @@ public interface TicketRepository {
     void saveEntity(TicketEntity ticketEntity);
     void deleteById(Integer id);
     List<Ticket> findByEventId(Integer eventId);
+
 }

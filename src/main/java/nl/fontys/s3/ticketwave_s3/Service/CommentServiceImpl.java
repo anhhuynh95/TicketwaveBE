@@ -80,6 +80,8 @@ public class CommentServiceImpl implements CommentService {
                 Map.of("deletedCommentId", commentId)
         );
 
+        System.out.println("WebSocket message sent: " + Map.of("deletedCommentId", commentId));
+
         // Notify admins
         notificationService.notifyAdminOnCommentDeletion(commentId);
     }

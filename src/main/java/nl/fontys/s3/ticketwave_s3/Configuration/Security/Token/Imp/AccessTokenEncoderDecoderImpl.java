@@ -73,4 +73,23 @@ public class AccessTokenEncoderDecoderImpl implements AccessTokenEncoder, Access
             throw new InvalidAccessTokenException(e.getMessage());
         }
     }
+
+    public String encodeRefreshToken(AccessToken accessToken) {
+        Map<String, Object> claimsMap = new HashMap<>();
+        if (accessToken.getUserId() != null) {
+            claimsMap.put("userId", accessToken.getUserId());
+        }
+        if (!CollectionUtils.isEmpty(accessToken.getRoles())) {
+            claimsMap.put("roles", accessToken.getRoles());
+        }
+
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .setSubject(accessToken.getSubject())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(7, ChronoUnit.DAYS))) // For refresh tokens
+                .addClaims(claimsMap)
+                .signWith(key)
+                .compact();
+    }
 }

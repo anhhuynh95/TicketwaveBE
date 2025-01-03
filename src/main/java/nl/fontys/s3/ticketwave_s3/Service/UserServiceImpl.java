@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
+        // Generate access token
         String accessToken = accessTokenEncoder.encode(
                 new AccessTokenImpl(
                         user.getUsername(),
@@ -62,8 +63,19 @@ public class UserServiceImpl implements UserService {
                 )
         );
 
+        // Generate refresh token
+        String refreshToken = accessTokenEncoder.encodeRefreshToken(
+                new AccessTokenImpl(
+                        user.getUsername(),
+                        Long.valueOf(user.getId()),
+                        List.of(user.getRole().name())
+                )
+        );
+
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .build();
     }

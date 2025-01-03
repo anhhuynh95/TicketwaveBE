@@ -33,8 +33,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Enable a simple broker for "/topic" destinations
         config.enableSimpleBroker("/topic");
-        // Set application destination prefix for sending messages
-        config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
@@ -42,16 +40,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Define WebSocket endpoint
         registry.addEndpoint("/websocket-endpoint").setAllowedOrigins("*");
     }
-
-//    @Override
-//    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-//        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.registerModule(new JavaTimeModule()); // Enable Java 8 date/time handling
-//        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO-8601 format
-//        converter.setObjectMapper(objectMapper);
-//        messageConverters.add(converter);
-//        return false;
-//    }
 }
 
