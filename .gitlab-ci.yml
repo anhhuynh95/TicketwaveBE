@@ -24,6 +24,7 @@ test:
   stage: test
   script:
     - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
+    - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
     - ./gradlew clean test jacocoTestReport # Run tests and generate coverage report
   artifacts:
     paths:
