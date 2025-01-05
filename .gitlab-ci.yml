@@ -23,6 +23,7 @@ build:
 test:
   stage: test
   script:
+    - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
     - ./gradlew clean test jacocoTestReport # Run tests and generate coverage report
   artifacts:
     paths:
