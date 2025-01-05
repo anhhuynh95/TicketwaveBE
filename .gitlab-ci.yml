@@ -30,7 +30,7 @@ build:
 test:
   stage: test
   script:
-    - ./gradlew clean test jacocoTestReport --stacktrace --info # Run tests and generate coverage report
+    - ./gradlew clean test jacocoTestReport # Run tests and generate coverage report
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml # Save Jacoco report for SonarQube
