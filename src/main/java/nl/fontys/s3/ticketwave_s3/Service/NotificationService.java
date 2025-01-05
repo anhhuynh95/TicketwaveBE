@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +29,13 @@ public class NotificationService {
     public void notifyAdmins(String message, Integer userId, Integer commentId) {
         LocalDateTime recentTimestamp = LocalDateTime.now().minusMinutes(5);
 
-        Map<String, Object> notification = Map.of(
-                "type", "TOXIC_COMMENT",
-                "message", message,
-                "userId", userId,
-                "commentId", commentId,
-                "timestamp", System.currentTimeMillis()
-        );
+        NotificationDTO notification = NotificationDTO.builder()
+                .userId(userId)
+                .commentId(commentId)
+                .message(message)
+                .createdAt(LocalDateTime.now())
+                .resolved(false)
+                .build();
 
         System.out.println("WebSocket: Sending to /topic/admin-notifications - " + notification);
 
