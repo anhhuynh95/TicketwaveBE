@@ -41,6 +41,7 @@ public class WebSecurityConfig {
         // Disable security in the 'test' profile
         if (Arrays.asList(env.getActiveProfiles()).contains("test")) {
             http.csrf(AbstractHttpConfigurer::disable)
+                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
             return http.build();
         }
@@ -51,7 +52,7 @@ public class WebSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/events", "/events/search", "/comments/**", "/public-endpoints/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/events", "/events/search", "/comments/**", "/public-endpoints/**",  "/tickets/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/me").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER")
                         .requestMatchers(HttpMethod.GET, "/websocket-endpoint/**").permitAll()

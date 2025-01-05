@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles("test")
 class CommentControllerIntegrationTest {
 
@@ -42,6 +41,7 @@ class CommentControllerIntegrationTest {
     private UserDBRepository userDBRepository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         // Clear all repositories
         commentDBRepository.deleteAll();
@@ -70,7 +70,7 @@ class CommentControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser")
+    @WithMockUser(username = "testuser", roles = {"USER"})
     void addComment_ShouldCreateComment() throws Exception {
         Integer eventId = eventDBRepository.findAll().get(0).getId();
 
@@ -92,7 +92,7 @@ class CommentControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser")
+    @WithMockUser(username = "testuser", roles = {"USER"})
     void addComment_ShouldReturnBadRequestForEmptyText() throws Exception {
         Integer eventId = eventDBRepository.findAll().get(0).getId();
 

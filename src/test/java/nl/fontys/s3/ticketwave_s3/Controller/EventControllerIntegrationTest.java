@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles("test")
 class EventControllerIntegrationTest {
 
@@ -44,6 +43,7 @@ class EventControllerIntegrationTest {
     private CommentDBRepository commentDBRepository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         // Check if the 'spring.profiles.active' system property is set
         String activeProfile = System.getProperty("spring.profiles.active", "test");
@@ -92,7 +92,7 @@ class EventControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "user", roles = {"USER"})
     void getEvent_ShouldReturnSpecificEvent() throws Exception {
         Integer eventId = eventDBRepository.findAll().get(0).getId();
 

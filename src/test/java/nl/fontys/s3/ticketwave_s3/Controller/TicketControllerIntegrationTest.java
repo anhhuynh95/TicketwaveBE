@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles("test")
 class TicketControllerIntegrationTest {
 
@@ -37,6 +36,7 @@ class TicketControllerIntegrationTest {
     private TicketDBRepository ticketDBRepository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         // Check if the 'spring.profiles.active' system property is set
         String activeProfile = System.getProperty("spring.profiles.active", "test");
@@ -89,7 +89,7 @@ class TicketControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "user", roles = {"USER"})
     void getAllTickets_ShouldReturnAllTickets() throws Exception {
         mockMvc.perform(get("/tickets")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -100,7 +100,7 @@ class TicketControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "user", roles = {"USER"})
     void getTicket_ShouldReturnTicket() throws Exception {
         TicketEntity existingTicket = ticketDBRepository.findAll().get(0);
         Integer ticketId = existingTicket.getId();
@@ -146,7 +146,7 @@ class TicketControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "user", roles = {"USER"})
     void getTicketsByEventId_ShouldReturnTicketsForEvent() throws Exception {
         Integer eventId = eventDBRepository.findAll().get(0).getId();
 

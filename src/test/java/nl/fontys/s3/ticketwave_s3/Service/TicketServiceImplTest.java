@@ -323,7 +323,7 @@ class TicketServiceImplTest {
         LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
         List<Object[]> results = List.of(new Object[]{EventType.MUSIC, 100L}, new Object[]{EventType.SPORTS, 50L});
 
-        when(purchasedTicketRepository.findPurchasesByEventType(sixMonthsAgo)).thenReturn(results);
+        when(purchasedTicketRepository.findPurchasesByEventType(any(LocalDateTime.class))).thenReturn(results);
 
         // Act
         Map<String, Long> result = ticketService.getTotalPurchasesByEventType();

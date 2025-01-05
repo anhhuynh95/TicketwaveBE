@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles("test")
 class UserControllerIntegrationTest {
 
@@ -33,6 +32,7 @@ class UserControllerIntegrationTest {
     private UserDBRepository userDBRepository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         // Clear the user database
         userDBRepository.deleteAll();
@@ -71,7 +71,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser")
+    @WithMockUser(username = "testuser", roles = {"USER"})
     void getCurrentUser_ShouldReturnCurrentUserDetails() throws Exception {
         mockMvc.perform(get("/users/me")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -81,7 +81,7 @@ class UserControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "nonexistentuser")
+    @WithMockUser(username = "nonexistentuser", roles = {"USER"})
     void getCurrentUser_ShouldReturnUnauthorizedForNonexistentUser() throws Exception {
         mockMvc.perform(get("/users/me")
                         .contentType(MediaType.APPLICATION_JSON))
