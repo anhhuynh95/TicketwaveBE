@@ -1,5 +1,6 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
+import nl.fontys.s3.ticketwave_s3.Configuration.Security.Token.AccessTokenDecoder;
 import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.CommentDBRepository;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class EventControllerIntegrationTest {
 
+    @MockBean
+    private AccessTokenDecoder accessTokenDecoder;
     @Autowired
     private MockMvc mockMvc;
 
