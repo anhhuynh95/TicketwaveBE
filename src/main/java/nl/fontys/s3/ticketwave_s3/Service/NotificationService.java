@@ -25,6 +25,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final CommentDBRepository commentRepository;
     private final NotificationMapper notificationMapper;
+    private final EmailService emailService;
 
     public void notifyAdmins(String message, Integer userId, Integer commentId) {
         LocalDateTime recentTimestamp = LocalDateTime.now().minusMinutes(5);
@@ -55,17 +56,6 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/admin-notifications", "Comment with ID " + commentId + " has been deleted.");
     }
 
-    public void saveUserNotification(Integer userId, String message) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
-        NotificationEntity notification = NotificationEntity.builder()
-                .user(user)
-                .message(message)
-                .createdAt(LocalDateTime.now())
-                .build();
-        notificationRepository.save(notification);
-    }
-
     public void saveAdminNotification(String message, Integer userId, Integer commentId) {
         UserEntity user = userId != null ? userRepository.findById(userId).orElse(null) : null;
         CommentEntity comment = commentId != null ? commentRepository.findById(commentId).orElse(null) : null;
@@ -93,5 +83,30 @@ public class NotificationService {
                 .stream()
                 .map(notificationMapper::toDTO)
                 .toList();
+    }
+
+    public void sendWarnEmail(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        String subject = "⚠️ Warning from Ticketwave Admin";
+        String text = "Dear " + user.getUsername() + ",\n\n"
+                + "We noticed some inappropriate behavior on your account. "
+                + "Please adhere to our community guidelines to avoid further actions.\n\n"
+                + "Best regards,\nTicketwave Admin Team";
+
+        emailService.sendEmail(user.getUsername(), subject, text);
+    }
+
+    public void sendBanEmail(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        String subject = "🚫 Account Ban from Ticketwave Admin";
+        String text = "Dear " + user.getUsername() + ",\n\n"
+                + "Due to repeated violations of our community guidelines, "
+                + "your account has been banned. If you believe this is a mistake, "
+                + "please contact support.\n\n"
+                + "Best regards,\nTicketwave Admin Team";
+
+        emailService.sendEmail(user.getUsername(), subject, text);
     }
 }

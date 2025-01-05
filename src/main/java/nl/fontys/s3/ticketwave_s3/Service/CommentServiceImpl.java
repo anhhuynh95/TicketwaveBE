@@ -53,6 +53,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         messagingTemplate.convertAndSend("/topic/comment-updates/" + createdComment.getEventId(), createdComment);
+        messagingTemplate.convertAndSend("/topic/comment-updates", createdComment);
         System.out.println("Sent WebSocket Message: " + createdComment);
 
         return createdComment;

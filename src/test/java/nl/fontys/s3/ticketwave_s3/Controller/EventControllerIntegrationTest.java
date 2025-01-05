@@ -1,7 +1,5 @@
 package nl.fontys.s3.ticketwave_s3.Controller;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.CommentDBRepository;
@@ -20,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -93,7 +90,7 @@ class EventControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = {"USER"})
+    @WithMockUser(username = "user")
     void getEvent_ShouldReturnSpecificEvent() throws Exception {
         Integer eventId = eventDBRepository.findAll().get(0).getId();
 

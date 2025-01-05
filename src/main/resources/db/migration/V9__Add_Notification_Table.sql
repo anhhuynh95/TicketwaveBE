@@ -3,6 +3,6 @@ CREATE TABLE notifications (
     user_id INT,
     message VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_read BOOLEAN DEFAULT FALSE,
+    resolved BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES useraccount(id) ON DELETE CASCADE
 );

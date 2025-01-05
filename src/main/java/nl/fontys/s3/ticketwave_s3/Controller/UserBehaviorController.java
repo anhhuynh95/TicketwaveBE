@@ -20,13 +20,14 @@ public class UserBehaviorController {
     @PostMapping("/warn/{userId}")
     public ResponseEntity<String> warnUser(@PathVariable Integer userId) {
         userBehaviorService.warnUser(userId);
-        notificationService.notifyUser(userId, "You have been warned by an admin.");
+        notificationService.sendWarnEmail(userId);
         return ResponseEntity.ok("User warned successfully.");
     }
 
     @PostMapping("/ban/{userId}")
     public ResponseEntity<String> banUser(@PathVariable Integer userId) {
         userBehaviorService.banUser(userId);
+        notificationService.sendBanEmail(userId);
         return ResponseEntity.ok("User banned successfully.");
     }
 }

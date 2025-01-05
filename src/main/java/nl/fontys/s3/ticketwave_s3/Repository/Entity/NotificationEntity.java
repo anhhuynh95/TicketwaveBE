@@ -31,7 +31,7 @@ public class NotificationEntity {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private boolean isRead = false;
+    private boolean resolved = false;
 
     @PrePersist
     public void prePersist() {

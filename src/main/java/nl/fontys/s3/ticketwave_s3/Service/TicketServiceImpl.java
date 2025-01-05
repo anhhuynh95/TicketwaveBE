@@ -8,7 +8,6 @@ import nl.fontys.s3.ticketwave_s3.Mapper.TicketMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.PurchasedTicketEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.TicketEntity;
-import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.PurchasedTicketRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.TicketRepository;
@@ -138,10 +137,6 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket entity not found."));
         ticketEntity.setQuantity(ticketEntity.getQuantity() - quantity);
         ticketRepository.saveEntity(ticketEntity);
-
-        // Retrieve the UserEntity object
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         // Save the purchase
         PurchasedTicketEntity purchasedTicket = new PurchasedTicketEntity();

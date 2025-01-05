@@ -7,14 +7,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationMapper {
 
-    public NotificationDTO toDTO(NotificationEntity entity) {
+    public NotificationDTO toDTO(NotificationEntity notificationEntity) {
         return NotificationDTO.builder()
-                .id(entity.getId())
-                .userId(entity.getUser().getId())
-                .commentId(entity.getComment().getId() != null ? entity.getComment().getId() : null)
-                .message(entity.getMessage())
-                .createdAt(entity.getCreatedAt())
-                .isRead(entity.isRead())
+                .id(notificationEntity.getId())
+                .message(notificationEntity.getMessage())
+                .commentId(notificationEntity.getComment() != null ? notificationEntity.getComment().getId() : null)
+                .createdAt(notificationEntity.getCreatedAt())
+                .userId(notificationEntity.getUser() != null ? notificationEntity.getUser().getId() : null)
                 .build();
     }
 }

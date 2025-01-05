@@ -13,5 +13,5 @@ public class NotificationDTO {
     private Integer commentId;
     private String message;
     private LocalDateTime createdAt;
-    private boolean isRead;
+    private boolean resolved;
 }
