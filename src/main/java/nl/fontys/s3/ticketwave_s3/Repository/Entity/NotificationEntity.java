@@ -31,6 +31,7 @@ public class NotificationEntity {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean resolved = false;
 
     @PrePersist
