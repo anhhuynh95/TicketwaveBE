@@ -1,6 +1,6 @@
 # Set environment variables for the CI pipeline
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dspring.profiles.active=test" # Disables the Gradle daemon to ensure a clean environment for each build
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dspring.profiles.active=test -Djwt.secret=$JWT_SECRET_TEST" # Disables the Gradle daemon to ensure a clean environment for each build
   SPRING_PROFILES_ACTIVE: test
   JWT_SECRET_TEST: X8nV7pZ5qPmJ9kT4R6YqP5fL3bXe7WvPnLpOfMqXpQ6WzX9nMnXq
 
