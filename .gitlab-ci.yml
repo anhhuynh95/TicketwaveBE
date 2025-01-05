@@ -1,6 +1,7 @@
 # Set environment variables for the CI pipeline
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false" # Disables the Gradle daemon to ensure a clean environment for each build
+  SPRING_PROFILES_ACTIVE: test
 
 # Define the pipeline stages that will run in sequence
 stages:
