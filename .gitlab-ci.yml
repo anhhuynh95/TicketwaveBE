@@ -5,10 +5,10 @@ variables:
 
 # Define the pipeline stages that will run in sequence
 stages:
-  - build #Compile and package the application
-  - test #Run the unit tests
-  - code_quality #Run SonarQube analysis
-  - build_docker_image  #Build the Docker image
+  - build
+  - test
+  - code_quality
+  - build_docker_image
 
 
 build:
