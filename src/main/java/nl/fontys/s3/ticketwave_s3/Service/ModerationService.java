@@ -5,6 +5,7 @@ import nl.fontys.s3.ticketwave_s3.Controller.DTOS.CommentDTO;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.CommentEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.NotificationRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.CommentRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class ModerationService {
 
     private final RestTemplate restTemplate;
     private final CommentRepository commentRepository;
+    @Lazy
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;

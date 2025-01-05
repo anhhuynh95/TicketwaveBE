@@ -126,7 +126,6 @@ class CommentServiceImplTest {
 
         verify(commentRepository).delete(commentEntity);
         verify(messagingTemplate).convertAndSend("/topic/comment-updates/100", Map.of("deletedCommentId", commentId));
-        verify(notificationService).notifyAdminOnCommentDeletion(commentId);
     }
 
     @Test

@@ -8,6 +8,7 @@ import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.UserService;
 import nl.fontys.s3.ticketwave_s3.Mapper.CommentMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.CommentEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.CommentDBRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class CommentServiceImpl implements CommentService {
     private final CommentDBRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserService userService;
+    @Lazy
     private final ModerationService moderationService;
-    private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
 
@@ -83,8 +84,6 @@ public class CommentServiceImpl implements CommentService {
 
         System.out.println("WebSocket message sent: " + Map.of("deletedCommentId", commentId));
 
-        // Notify admins
-        notificationService.notifyAdminOnCommentDeletion(commentId);
     }
 
 }
