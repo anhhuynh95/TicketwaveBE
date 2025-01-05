@@ -5,6 +5,7 @@ variables:
   DATABASE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL
   DATABASE_USERNAME: sa
   DATABASE_PASSWORD: password
+  JWT_SECRET: secure_test_jwt_secret
   MAIL_HOST: disabled
   MAIL_PORT: 0
   MAIL_USERNAME: ""
@@ -29,7 +30,7 @@ build:
 test:
   stage: test
   script:
-    - ./gradlew clean test jacocoTestReport # Run tests and generate coverage report
+    - ./gradlew clean test jacocoTestReport --stacktrace --info # Run tests and generate coverage report
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml # Save Jacoco report for SonarQube
