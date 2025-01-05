@@ -7,6 +7,7 @@ import nl.fontys.s3.ticketwave_s3.Configuration.Security.Auth.AuthenticationRequ
 import nl.fontys.s3.ticketwave_s3.Configuration.Security.Token.AccessTokenDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @EnableWebSecurity
@@ -27,40 +29,47 @@ import java.util.List;
 public class WebSecurityConfig {
 
     private final AccessTokenDecoder accessTokenDecoder;
+    private final Environment env;
 
-    public WebSecurityConfig(AccessTokenDecoder accessTokenDecoder) {
+    public WebSecurityConfig(AccessTokenDecoder accessTokenDecoder, Environment env) {
         this.accessTokenDecoder = accessTokenDecoder;
+        this.env = env;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF protection
-                .sessionManagement(session
-                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
-                .cors(cors
-                        -> cors.configurationSource(corsConfigurationSource())) // Apply CORS configuration
-                .authorizeHttpRequests(auth
-                        -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
-                        .requestMatchers(HttpMethod.GET, "/events","/events/search", "/comments/**", "/public-endpoints/**").permitAll()
+        // Disable security in the 'test' profile
+        if (Arrays.asList(env.getActiveProfiles()).contains("test")) {
+            http.csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            return http.build();
+        }
+
+        // Normal security configuration for non-test profiles
+        http.csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/events", "/events/search", "/comments/**", "/public-endpoints/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/me").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER")
-                        .requestMatchers(HttpMethod.GET,"/websocket-endpoint/**").permitAll()
-                        .anyRequest().authenticated() // Protect all other endpoints
+                        .requestMatchers(HttpMethod.GET, "/websocket-endpoint/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .anonymous(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new AuthenticationRequestFilter(accessTokenDecoder), UsernamePasswordAuthenticationFilter.class); // Add custom filter
+                .addFilterBefore(new AuthenticationRequestFilter(accessTokenDecoder), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Frontend origin
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Set-Cookie")); // Allow exposing cookies
-        configuration.setAllowCredentials(true); // Allow credentials (cookies)
+        configuration.setExposedHeaders(List.of("Set-Cookie"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -74,5 +83,4 @@ public class WebSecurityConfig {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }
-
 }
