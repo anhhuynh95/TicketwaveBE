@@ -38,7 +38,7 @@ class UserControllerIntegrationTest {
         // Add a sample user
         UserEntity user = UserEntity.builder()
                 .username("testuser")
-                .password("encodedPassword") // Ensure this matches your encoder setup
+                .password("encodedPassword")
                 .role(UserRole.USER)
                 .active(true)
                 .build();
