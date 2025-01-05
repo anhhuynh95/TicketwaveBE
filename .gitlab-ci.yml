@@ -2,6 +2,14 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false" # Disables the Gradle daemon to ensure a clean environment for each build
   SPRING_PROFILES_ACTIVE: test
+  DATABASE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL
+  DATABASE_USERNAME: sa
+  DATABASE_PASSWORD: password
+  JWT_SECRET: secure_jwt_secret
+  MAIL_HOST: disabled
+  MAIL_PORT: 0
+  MAIL_USERNAME: ""
+  MAIL_PASSWORD: ""
 
 # Define the pipeline stages that will run in sequence
 stages:
