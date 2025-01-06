@@ -2,7 +2,7 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dspring.profiles.active=test -Djwt.secret=${JWT_SECRET_TEST}"
   SPRING_PROFILES_ACTIVE: test
-  JWT_SECRET_TEST: ${JWT_SECRET_TEST}
+  JWT_SECRET_TEST: X8nV7pZ5qPmJ9kT4R6YqP5fL3bXe7WvPnLpOfMqXpQ6WzX9nMnXq
 
 # Define the pipeline stages that will run in sequence
 stages:
@@ -25,7 +25,7 @@ test:
   script:
     - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
     - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
-    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel # Run tests and generate coverage report
+    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel -Dspring.profiles.active=test --info
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml # Save Jacoco report for SonarQube
