@@ -22,6 +22,7 @@ build:
 
 test:
   stage: test
+  image: gradle:8.0-jdk17
   script:
     - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
     - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
