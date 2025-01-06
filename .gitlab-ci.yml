@@ -1,10 +1,6 @@
 # Set environment variables for the CI pipeline
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dspring.profiles.active=test -Djwt.secret=${JWT_SECRET_TEST}"
-  SPRING_PROFILES_ACTIVE: "test"
-  JWT_SECRET_TEST: "X8nV7pZ5qPmJ9kT4R6YqP5fL3bXe7WvPnLpOfMqXpQ6WzX9nMnXq"
-  SPRING_FLYWAY_ENABLED: "false"
-  SPRING_DATASOURCE_URL: "jdbc:h2:mem:testdb"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Define the pipeline stages that will run in sequence
 stages:
@@ -24,10 +20,8 @@ build:
 
 test:
   stage: test
-  image: gradle:8.0-jdk17
   script:
-    - echo "SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}"
-    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel
+    - ./gradlew clean test jacocoTestReport
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
