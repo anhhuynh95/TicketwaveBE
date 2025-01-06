@@ -83,7 +83,5 @@ public class CommentServiceImpl implements CommentService {
         );
 
         System.out.println("WebSocket message sent: " + Map.of("deletedCommentId", commentId));
-
     }
-
 }

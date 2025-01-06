@@ -2,19 +2,19 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import lombok.RequiredArgsConstructor;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.CommentDTO;
+import nl.fontys.s3.ticketwave_s3.Domain.AdminNotificationEvent;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.CommentEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.NotificationRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.CommentRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +22,8 @@ public class ModerationService {
 
     private final RestTemplate restTemplate;
     private final CommentRepository commentRepository;
-    @Lazy
-    private final NotificationService notificationService;
-    private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String API_KEY = "AIzaSyDVQ7Ia5SxOM0A_zJzyWzcvKF7qI0M80qQ";
     private static final String API_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=";
@@ -47,28 +45,20 @@ public class ModerationService {
                     Map.of("flaggedCommentId", comment.getId(), "isToxic", true)
             );
 
-            Integer userId = comment.getUserId();
-            Integer commentId = comment.getId();
-            String username = commentDTO.getUsername();
-            LocalDateTime recentThreshold = LocalDateTime.now();
-
-            // Construct the notification message
-            String message = String.format(
-                    "Toxic comment detected from User '%s': '%s'. Admin action required.",
-                    Optional.ofNullable(username).orElse("Unknown User"),
-                    commentDTO.getCommentText()
+            // Publish the event
+            AdminNotificationEvent event = new AdminNotificationEvent(
+                    commentDTO.getUsername(),
+                    commentDTO.getCommentText(),
+                    commentDTO.getUserId(),
+                    commentDTO.getId(),
+                    comment.getEventId()
             );
+            eventPublisher.publishEvent(event);
 
             System.out.println("Notifying admins about toxic comment...");
-
-            // Check if a similar notification exists within the threshold
-            if (!notificationRepository.existsByMessageUserAndRecentTimestamp(message, userId, recentThreshold)) {
-                notificationService.notifyAdmins(message, userId, commentId);
-            } else {
-                System.out.println("Duplicate notification detected within the threshold. Skipping.");
-            }
         }
     }
+
 
     @SuppressWarnings("unchecked")
     private boolean isToxic(String commentText) {

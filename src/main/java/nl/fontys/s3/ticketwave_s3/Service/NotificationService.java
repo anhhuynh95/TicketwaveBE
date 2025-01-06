@@ -2,6 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import lombok.RequiredArgsConstructor;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.NotificationDTO;
+import nl.fontys.s3.ticketwave_s3.Domain.AdminNotificationEvent;
 import nl.fontys.s3.ticketwave_s3.Mapper.NotificationMapper;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.CommentEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.NotificationEntity;
@@ -9,11 +10,13 @@ import nl.fontys.s3.ticketwave_s3.Repository.Entity.UserEntity;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.CommentDBRepository;
 import nl.fontys.s3.ticketwave_s3.Repository.JPA.NotificationRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.UserRepository;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,29 @@ public class NotificationService {
     private final CommentDBRepository commentRepository;
     private final NotificationMapper notificationMapper;
     private final EmailService emailService;
+
+    @EventListener
+    public void handleAdminNotification(AdminNotificationEvent event) {
+        // Step 1: Broadcast the notification via WebSocket
+        messagingTemplate.convertAndSend(
+                "/topic/admin-notifications",
+                Map.of(
+                        "message", event.getMessage(),
+                        "userId", event.getUserId(),
+                        "commentId", event.getCommentId(),
+                        "eventId", event.getEventId()
+                )
+        );
+        System.out.println("Admin notified: " + event.getMessage());
+
+        // Step 2: Save the notification to the database
+        LocalDateTime recentTimestamp = LocalDateTime.now().minusMinutes(5);
+        if (!notificationRepository.existsByMessageUserAndRecentTimestamp(event.getMessage(), event.getUserId(), recentTimestamp)) {
+            saveAdminNotification(event.getMessage(), event.getUserId(), event.getCommentId());
+        } else {
+            System.out.println("Duplicate notification detected within the threshold. Skipping save.");
+        }
+    }
 
     public void notifyAdmins(String message, Integer userId, Integer commentId) {
         LocalDateTime recentTimestamp = LocalDateTime.now().minusMinutes(5);
@@ -39,20 +65,19 @@ public class NotificationService {
 
         System.out.println("WebSocket: Sending to /topic/admin-notifications - " + notification);
 
+        // Broadcast the notification via WebSocket
+        messagingTemplate.convertAndSend("/topic/admin-notifications", notification);
+
+        // Save the notification to the database if it's not a duplicate
         if (!notificationRepository.existsByMessageUserAndRecentTimestamp(message, userId, recentTimestamp)) {
-            messagingTemplate.convertAndSend("/topic/admin-notifications", notification);
             saveAdminNotification(message, userId, commentId);
         } else {
-            System.out.println("Duplicate notification for the same user. Skipping send.");
+            System.out.println("Duplicate notification detected within the threshold. Skipping send.");
         }
     }
 
     public void notifyUser(Integer userId, String message) {
         messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/notifications", message);
-    }
-
-    public void notifyAdminOnCommentDeletion(Integer commentId) {
-        messagingTemplate.convertAndSend("/topic/admin-notifications", "Comment with ID " + commentId + " has been deleted.");
     }
 
     public void saveAdminNotification(String message, Integer userId, Integer commentId) {
