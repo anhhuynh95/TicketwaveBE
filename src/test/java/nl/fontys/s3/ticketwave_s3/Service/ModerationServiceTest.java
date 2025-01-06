@@ -3,7 +3,6 @@ package nl.fontys.s3.ticketwave_s3.Service;
 import nl.fontys.s3.ticketwave_s3.Controller.DTOS.CommentDTO;
 import nl.fontys.s3.ticketwave_s3.Domain.AdminNotificationEvent;
 import nl.fontys.s3.ticketwave_s3.Repository.Entity.CommentEntity;
-import nl.fontys.s3.ticketwave_s3.Repository.JPA.NotificationRepository;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.CommentRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
