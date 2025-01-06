@@ -25,7 +25,7 @@ test:
   script:
     - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
     - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
-    - ./gradlew clean test jacocoTestReport --no-daemon # Run tests and generate coverage report
+    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel # Run tests and generate coverage report
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml # Save Jacoco report for SonarQube
