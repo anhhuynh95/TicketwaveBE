@@ -40,6 +40,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Disable security in the 'test' profile
         if (Arrays.asList(env.getActiveProfiles()).contains("test")) {
+            System.out.println("Test profile active: Disabling security.");
             http.csrf(AbstractHttpConfigurer::disable)
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
@@ -47,6 +48,7 @@ public class WebSecurityConfig {
         }
 
         // Normal security configuration for non-test profiles
+        System.out.println("Non-test profile active: Applying security.");
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))

@@ -26,9 +26,8 @@ test:
   stage: test
   image: gradle:8.0-jdk17
   script:
-    - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
-    - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
-    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel -D"spring.profiles.active=test"
+    - echo "SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}"
+    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
