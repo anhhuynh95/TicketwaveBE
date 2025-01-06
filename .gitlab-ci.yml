@@ -3,6 +3,8 @@ variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dspring.profiles.active=test -Djwt.secret=${JWT_SECRET_TEST}"
   SPRING_PROFILES_ACTIVE: test
   JWT_SECRET_TEST: X8nV7pZ5qPmJ9kT4R6YqP5fL3bXe7WvPnLpOfMqXpQ6WzX9nMnXq
+  POSTGRES_ENABLED: "false"
+  DISABLE_SPRING_DATASOURCE_URL: "true"
 
 # Define the pipeline stages that will run in sequence
 stages:
