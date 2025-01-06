@@ -22,10 +22,6 @@ configurations {
     }
 }
 
-tasks.withType(Test).configureEach {
-    maxParallelForks = 1
-}
-
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
@@ -78,13 +74,17 @@ dependencies {
 //        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4"
 //    }
 //}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    systemProperty "spring.profiles.active", "test"
+    maxParallelForks = 1  // Disable parallel test execution
+}
 
 jacoco {
     toolVersion = "0.8.7"
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
     finalizedBy 'jacocoTestReport'  // Ensure JaCoCo runs after tests
 }
 
