@@ -25,7 +25,7 @@ test:
   script:
     - echo "JWT_SECRET_TEST=$JWT_SECRET_TEST"
     - echo "Running tests with SPRING_PROFILES_ACTIVE=test"
-    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel --info
+    - ./gradlew clean test jacocoTestReport --no-daemon --no-parallel --info -Dspring.profiles.active=test
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
