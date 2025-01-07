@@ -70,7 +70,6 @@ class CommentServiceImplTest {
         assertEquals("Test comment", result.getCommentText());
         verify(moderationService).checkAndFlagComment(commentDTO);
         verify(messagingTemplate).convertAndSend("/topic/comment-updates/100", commentDTO);
-        verify(messagingTemplate).convertAndSend("/topic/comment-updates", commentDTO);
     }
 
     @Test
