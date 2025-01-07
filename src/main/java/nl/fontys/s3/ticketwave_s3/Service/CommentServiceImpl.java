@@ -52,9 +52,11 @@ public class CommentServiceImpl implements CommentService {
         } catch (Exception e) {
             System.err.println("Error serializing payload: " + e.getMessage());
         }
-
-        messagingTemplate.convertAndSend("/topic/comment-updates/" + createdComment.getEventId(), createdComment);
-        messagingTemplate.convertAndSend("/topic/comment-updates", createdComment);
+        if (createdComment.getCommentText() != null && !createdComment.getCommentText().trim().isEmpty()) {
+            messagingTemplate.convertAndSend("/topic/comment-updates/" + createdComment.getEventId(), createdComment);
+        } else {
+            System.out.println("Skipped sending empty comment to WebSocket.");
+        }
         System.out.println("Sent WebSocket Message: " + createdComment);
 
         return createdComment;
