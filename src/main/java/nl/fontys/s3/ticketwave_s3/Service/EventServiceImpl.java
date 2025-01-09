@@ -38,8 +38,8 @@ public class EventServiceImpl implements EventService {
 
     /** Save a new event. */
     @Override
-    public void createEvent(Event event) {
-        eventRepository.save(event);
+    public Event createEvent(Event event) {
+        return eventRepository.save(event);
     }
 
     /** Update an existing event by ID. */

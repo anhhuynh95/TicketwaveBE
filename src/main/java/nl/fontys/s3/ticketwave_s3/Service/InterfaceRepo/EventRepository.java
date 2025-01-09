@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 public interface EventRepository {
     Page<Event> findAll(Pageable pageable);
     Event findById(Integer id);
-    void save(Event event);
+    Event save(Event event);
     void deleteById(Integer id);
     Page<EventEntity> searchEvents(String query, Pageable pageable);
     Page<EventEntity> searchEventsByType(String query, EventType eventType, Pageable pageable);

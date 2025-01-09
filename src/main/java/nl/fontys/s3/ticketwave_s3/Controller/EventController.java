@@ -85,9 +85,10 @@ public class EventController {
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public void createEvent(@Valid @RequestBody EventDTO eventDTO) {
+    public EventDTO createEvent(@Valid @RequestBody EventDTO eventDTO) {
         Event event = eventMapper.toDomain(eventDTO);
-        eventService.createEvent(event);
+        Event createdEvent = eventService.createEvent(event);
+        return eventMapper.toDTO(createdEvent);
     }
 
     /**Update an existing event.*/

@@ -35,6 +35,26 @@ public class EventMapper {
         dto.setImageUrl(cloudinaryBaseUrl + event.getId());
         return dto;
     }
+    // Convert domain Event to DTO without tickets
+
+    public EventDTO toDTO(Event event) {
+        if (event == null) {
+            return null;
+        }
+        EventDTO dto = new EventDTO();
+        dto.setId(event.getId());
+        dto.setName(event.getName());
+        dto.setLocation(event.getLocation());
+        dto.setDescription(event.getDescription());
+        dto.setDateTime(event.getDateTime());
+        dto.setTicketQuantity(event.getTicketQuantity());
+        dto.setEventType(event.getEventType());
+
+        String cloudinaryBaseUrl = "https://res.cloudinary.com/du63rfliz/image/upload/events/";
+        dto.setImageUrl(cloudinaryBaseUrl + event.getId());
+
+        return dto;
+    }
 
     // Convert DTO to domain Event
     public Event toDomain(EventDTO dto) {

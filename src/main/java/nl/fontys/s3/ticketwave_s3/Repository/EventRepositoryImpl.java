@@ -38,9 +38,10 @@ public class EventRepositoryImpl implements EventRepository {
 
     /**Save or update an event in the repository.*/
     @Override
-    public void save(Event event) {
+    public Event save(Event event) {
         EventEntity entity = eventMapper.toEntity(event);
-        eventDBRepository.save(entity);
+        EventEntity savedEntity = eventDBRepository.save(entity);
+        return eventMapper.toDomain(savedEntity);
     }
 
     /**Delete an event by its ID.*/

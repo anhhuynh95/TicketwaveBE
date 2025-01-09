@@ -35,23 +35,7 @@ public class CloudinaryService {
     }
     /** Create a dedicated, secure temporary directory */
     public Path createSecureTempDirectory() throws IOException {
-        Path tempDir = Files.createTempDirectory("secure-temp-dir-");
-        File dirFile = tempDir.toFile();
-
-        // Skip setting permissions in test environments
-        if (isTestEnvironment()) {
-            return tempDir;
-        }
-
-        if (!dirFile.setReadable(true, true) || !dirFile.setWritable(true, true) || !dirFile.setExecutable(false, true)) {
-            throw new IOException("Failed to set secure permissions on temporary directory.");
-        }
-        return tempDir;
-    }
-
-    /** Check if running in a test environment */
-    private boolean isTestEnvironment() {
-        return System.getProperty("java.class.path").contains("test");
+        return Files.createTempDirectory("secure-temp-dir-");
     }
 }
 

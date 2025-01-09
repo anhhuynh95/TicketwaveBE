@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 public interface EventService {
     Page<Event> getAllEvents(Pageable pageable);
     Event getEventById(Integer id);
-    void createEvent(Event event);
+    Event createEvent(Event event);
     void updateEvent(Integer id, Event event);
     void deleteEvent(Integer id);
     Page<Event> searchEvents(String query, Pageable pageable);
