@@ -174,15 +174,15 @@ public class EventController {
     @GetMapping("/search")
     public Page<EventDTO> searchEvents(@RequestParam(required = false) String query,
                                        @RequestParam(required = false) EventType eventType,
+                                       @RequestParam(required = false) Double latitude,
+                                       @RequestParam(required = false) Double longitude,
+                                       @RequestParam(required = false) Double radius,
                                        @RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "3") int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
-
-        return (eventType == null
-                ? eventService.searchEvents(searchQuery, pageable)
-                : eventService.searchEvents(searchQuery, eventType, pageable))
+        // Call the service method with all parameters
+        return eventService.searchEvents(query, eventType, latitude, longitude, radius, pageable)
                 .map(event -> {
                     List<Ticket> tickets = ticketService.getTicketsByEventId(event.getId());
                     EventDTO dto = eventMapper.toDTO(event, tickets);

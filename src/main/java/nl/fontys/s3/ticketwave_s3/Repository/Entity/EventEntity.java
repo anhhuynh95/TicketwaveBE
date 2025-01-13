@@ -45,4 +45,10 @@ public class EventEntity {
     @NotNull
     @Column
     private EventType eventType;
+
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
 }

@@ -17,4 +17,6 @@ public class Event {
     private String dateTime;
     private Integer ticketQuantity;
     private EventType eventType;
+    private Double latitude;
+    private Double longitude;
 }

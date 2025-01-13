@@ -28,6 +28,9 @@ class EventServiceImplTest {
     private EventRepository eventRepository;
 
     @Mock
+    private GeocodingService geocodingService;
+
+    @Mock
     private EventMapper eventMapper;
 
     @InjectMocks
@@ -96,8 +99,13 @@ class EventServiceImplTest {
                 .location("Amsterdam")
                 .build();
 
+        double[] mockCoordinates = {52.3676, 4.9041};
+        when(geocodingService.getCoordinates("Amsterdam")).thenReturn(mockCoordinates);
+
         eventService.createEvent(event);
 
+        assertEquals(mockCoordinates[0], event.getLatitude());
+        assertEquals(mockCoordinates[1], event.getLongitude());
         verify(eventRepository).save(event);
     }
 
@@ -109,8 +117,13 @@ class EventServiceImplTest {
                 .location("Amsterdam")
                 .build();
 
+        double[] mockCoordinates = {52.3676, 4.9041};
+        when(geocodingService.getCoordinates("Amsterdam")).thenReturn(mockCoordinates);
+
         eventService.updateEvent(1, event);
 
+        assertEquals(mockCoordinates[0], event.getLatitude());
+        assertEquals(mockCoordinates[1], event.getLongitude());
         verify(eventRepository).save(event);
     }
 
@@ -142,28 +155,6 @@ class EventServiceImplTest {
     @Test
     void searchEvents_shouldReturnPaginatedResultsWhenQueryExists() {
         String query = "concert";
-        Pageable pageable = PageRequest.of(0, 5);
-
-        EventEntity eventEntity = EventEntity.builder().id(1).name("Concert").location("Amsterdam").build();
-        Event event = Event.builder().id(1).name("Concert").location("Amsterdam").build();
-
-        List<EventEntity> eventEntities = List.of(eventEntity);
-        List<Event> events = List.of(event);
-
-        Page<EventEntity> eventEntityPage = new PageImpl<>(eventEntities, pageable, eventEntities.size());
-
-        when(eventRepository.searchEvents(query, pageable)).thenReturn(eventEntityPage);
-        when(eventMapper.toDomain(eventEntity)).thenReturn(event);
-
-        Page<Event> result = eventService.searchEvents(query, pageable);
-
-        assertEquals(events, result.getContent());
-        verify(eventRepository).searchEvents(query, pageable);
-    }
-
-    @Test
-    void searchEvents_shouldReturnPaginatedResultsForEventType() {
-        String query = "concert";
         EventType eventType = EventType.MUSIC;
         Pageable pageable = PageRequest.of(0, 5);
 
@@ -175,13 +166,13 @@ class EventServiceImplTest {
 
         Page<EventEntity> eventEntityPage = new PageImpl<>(eventEntities, pageable, eventEntities.size());
 
-        when(eventRepository.searchEventsByType(query, eventType, pageable)).thenReturn(eventEntityPage);
+        when(eventRepository.searchEvents(query, eventType, null, null, null, pageable)).thenReturn(eventEntityPage);
         when(eventMapper.toDomain(eventEntity)).thenReturn(event);
 
-        Page<Event> result = eventService.searchEvents(query, eventType, pageable);
+        Page<Event> result = eventService.searchEvents(query, eventType, null, null, null, pageable);
 
         assertEquals(events, result.getContent());
-        verify(eventRepository).searchEventsByType(query, eventType, pageable);
+        verify(eventRepository).searchEvents(query, eventType, null, null, null, pageable);
     }
 
     @Test
@@ -191,11 +182,11 @@ class EventServiceImplTest {
 
         Page<EventEntity> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(eventRepository.searchEvents(query, pageable)).thenReturn(emptyPage);
+        when(eventRepository.searchEvents(query, null, null, null, null, pageable)).thenReturn(emptyPage);
 
-        Page<Event> result = eventService.searchEvents(query, pageable);
+        Page<Event> result = eventService.searchEvents(query, null, null, null, null, pageable);
 
         assertTrue(result.getContent().isEmpty());
-        verify(eventRepository).searchEvents(query, pageable);
+        verify(eventRepository).searchEvents(query, null, null, null, null, pageable);
     }
 }

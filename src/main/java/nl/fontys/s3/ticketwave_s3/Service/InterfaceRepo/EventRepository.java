@@ -11,7 +11,7 @@ public interface EventRepository {
     Event findById(Integer id);
     Event save(Event event);
     void deleteById(Integer id);
-    Page<EventEntity> searchEvents(String query, Pageable pageable);
-    Page<EventEntity> searchEventsByType(String query, EventType eventType, Pageable pageable);
+    Page<EventEntity> searchEvents(String query, EventType eventType, Double latitude, Double longitude, Double radius, Pageable pageable);
+
 
 }

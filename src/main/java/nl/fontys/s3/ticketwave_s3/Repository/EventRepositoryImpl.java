@@ -51,12 +51,7 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public Page<EventEntity> searchEvents(String query, Pageable pageable) {
-        return eventDBRepository.searchEvents(query, pageable);
-    }
-
-    @Override
-    public Page<EventEntity> searchEventsByType(String query, EventType eventType, Pageable pageable){
-        return eventDBRepository.searchEventsByType(query, eventType, pageable);
+    public Page<EventEntity> searchEvents(String query, EventType eventType, Double latitude, Double longitude, Double radius, Pageable pageable) {
+        return eventDBRepository.searchEvents(query, eventType, latitude, longitude, radius, pageable);
     }
 }

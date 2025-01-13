@@ -2,6 +2,7 @@ package nl.fontys.s3.ticketwave_s3.Service;
 
 import nl.fontys.s3.ticketwave_s3.Domain.EventType;
 import nl.fontys.s3.ticketwave_s3.Mapper.EventMapper;
+import nl.fontys.s3.ticketwave_s3.Repository.Entity.EventEntity;
 import nl.fontys.s3.ticketwave_s3.Service.InterfaceRepo.EventRepository;
 import nl.fontys.s3.ticketwave_s3.Controller.InterfaceService.EventService;
 import nl.fontys.s3.ticketwave_s3.Domain.Event;
@@ -14,10 +15,12 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
+    private final GeocodingService geocodingService;
 
-    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper) {
+    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper, GeocodingService geocodingService) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
+        this.geocodingService = geocodingService;
     }
 
     /** Retrieve all events. */
@@ -39,6 +42,9 @@ public class EventServiceImpl implements EventService {
     /** Save a new event. */
     @Override
     public Event createEvent(Event event) {
+        double[] coordinates = geocodingService.getCoordinates(event.getLocation());
+        event.setLatitude(coordinates[0]);
+        event.setLongitude(coordinates[1]);
         return eventRepository.save(event);
     }
 
@@ -46,6 +52,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public void updateEvent(Integer id, Event event) {
         event.setId(id);
+        double[] coordinates = geocodingService.getCoordinates(event.getLocation());
+        event.setLatitude(coordinates[0]);
+        event.setLongitude(coordinates[1]);
         eventRepository.save(event);
     }
 
@@ -60,16 +69,26 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Page<Event> searchEvents(String query, Pageable pageable) {
+    public Page<Event> searchEvents(String query, EventType eventType, Double latitude, Double longitude, Double radius, Pageable pageable) {
         String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
-        return eventRepository.searchEvents(searchQuery, pageable)
-                .map(eventMapper::toDomain);
+
+        // Log search parameters for debugging
+        System.out.println("Query: " + searchQuery);
+        System.out.println("EventType: " + eventType);
+        System.out.println("Latitude: " + latitude);
+        System.out.println("Longitude: " + longitude);
+        System.out.println("Radius: " + radius);
+
+        // Fetch events using the repository
+        Page<EventEntity> results = eventRepository.searchEvents(searchQuery, eventType, latitude, longitude, radius, pageable);
+
+        // Log the results for debugging
+        System.out.println("Filtered Results: " + results.getContent().size());
+        results.forEach(event -> System.out.println("Event: " + event.getName() + " at " + event.getLocation()));
+
+        // Map entities to domain objects
+        return results.map(eventMapper::toDomain);
     }
 
-    @Override
-    public Page<Event> searchEvents(String query, EventType eventType, Pageable pageable) {
-        String searchQuery = (query == null || query.trim().isEmpty()) ? null : query.trim();
-        return eventRepository.searchEventsByType(searchQuery, eventType, pageable)
-                .map(eventMapper::toDomain);
-    }
+
 }

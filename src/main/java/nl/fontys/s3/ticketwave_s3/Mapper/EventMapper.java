@@ -85,6 +85,8 @@ public class EventMapper {
         entity.setDateTime(event.getDateTime());
         entity.setTicketQuantity(event.getTicketQuantity());
         entity.setEventType(event.getEventType());
+        entity.setLatitude(event.getLatitude());
+        entity.setLongitude(event.getLongitude());
         return entity;
     }
 
@@ -101,6 +103,8 @@ public class EventMapper {
         event.setDateTime(entity.getDateTime());
         event.setTicketQuantity(entity.getTicketQuantity());
         event.setEventType(entity.getEventType());
+        event.setLatitude(entity.getLatitude());
+        event.setLongitude(entity.getLongitude());
         return event;
     }
 }

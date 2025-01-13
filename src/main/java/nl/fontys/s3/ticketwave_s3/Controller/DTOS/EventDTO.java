@@ -26,4 +26,6 @@ public class EventDTO {
     private List<TicketDTO> tickets;
     private String imageUrl;
     private EventType eventType;
+    private Double latitude;
+    private Double longitude;
 }

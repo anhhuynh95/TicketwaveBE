@@ -11,6 +11,6 @@ public interface EventService {
     Event createEvent(Event event);
     void updateEvent(Integer id, Event event);
     void deleteEvent(Integer id);
-    Page<Event> searchEvents(String query, Pageable pageable);
-    Page<Event> searchEvents(String query, EventType eventType, Pageable pageable);
+    Page<Event> searchEvents(String query, EventType eventType, Double latitude, Double longitude, Double radius, Pageable pageable);
+
 }
